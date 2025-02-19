@@ -1,19 +1,16 @@
-import { Body, Controller, Post, SerializeOptions } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginBodyDTO, LoginEntity, LogoutBodyDTO, LogoutResDTO, RefreshTokenBodyDTO, RegisterBodyDTO, RegisterEntity } from './auth.dto';
-
+import { LoginBodyDTO, LogoutBodyDTO, RefreshTokenBodyDTO, RegisterBodyDTO } from './auth.dto';
+import { Response } from 'express'
 @Controller('auth')
-
 
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
-    @SerializeOptions({ type: RegisterEntity })
     @Post('register')
     async register(@Body() body: RegisterBodyDTO) {
         return await this.authService.register(body)
     }
 
-    @SerializeOptions({ type: LoginEntity })
     @Post('login')
     async login(@Body() body: LoginBodyDTO) {
         return await this.authService.login(body)
@@ -26,6 +23,14 @@ export class AuthController {
 
     @Post('logout')
     async logout(@Body() body: LogoutBodyDTO) {
-        return new LogoutResDTO(await this.authService.logout(body.refreshToken))
+        return await this.authService.logout(body.refreshToken)
+    }
+
+    @Get('/oauth/google')
+    async loginWithGoogle(@Req() req, @Res() res: Response) {
+        const { code } = req.query
+        const result = await this.authService.oauth(code as string)
+        const urlRedirect = `${process.env.CLIENT_REDIRECT_CALLBACK}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}&verify=${result.verify}`
+        return res.redirect(urlRedirect)
     }
 }

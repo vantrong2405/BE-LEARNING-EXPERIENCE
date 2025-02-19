@@ -1,71 +1,70 @@
-import { Exclude, Type } from "class-transformer"
-import { IsString, Length } from "class-validator"
-import { Match } from "src/shared/decorators/custom-validator.decorator"
-import { SuccessResDTO } from "src/shared/shared.dto"
+import { Type } from "class-transformer";
+import {
+    IsDate,
+    IsEmail,
+    IsIn,
+    IsNotEmpty,
+    IsNumber,
+    IsOptional,
+    IsString,
+    Length,
+} from "class-validator";
+import { Match } from "src/shared/decorators/custom-validator.decorator";
 
+// schema body DTO
 export class LoginBodyDTO {
-    @IsString()
-    email: string
+    @IsNotEmpty()
+    @IsEmail()
+    email: string;
 
+    @IsNotEmpty()
     @IsString()
     @Length(6, 20)
-    password: string
+    password: string;
 }
 
-export class RegisterBodyDTO extends LoginBodyDTO {
+export class RegisterBodyDTO {
+    @IsNotEmpty()
     @IsString()
-    name: string
+    name: string;
 
+    @IsNotEmpty()
+    @IsEmail()
+    email: string;
+
+    @IsNotEmpty()
+    @Length(6, 20)
+    password: string;
+
+    @IsNotEmpty()
+    @Match("password")
+    confirmPassword: string;
+
+    @IsOptional()
     @IsString()
-    @Match('password', { message: 'Passwords do not match' })
-    confirmPassword: string
+    @IsIn(["male", "female", "other"], { message: "Gender must be 'male', 'female', or 'other'" })
+    gender?: string; // male, female, other
+
+    @IsNotEmpty()
+    @Type(() => Date)
+    @IsDate()
+    dateOfBirth: Date;
+
+    @IsNotEmpty()
+    @IsNumber({}, { message: "Role ID must be a number" })
+    @IsIn([0, 1, 2], { message: "roleId must be 0 (student), 1 (instructor), or 2 (admin)" })
+    roleId: number; // 0 = Student, 1 = Instructor, 2 = Admin
 }
 
-class RegisterData {
-    id: number
-    email: string
-    name: string
-    @Exclude() password: string
-    createdAt: Date
-    updatedAt: Date
-
-    constructor(partial: Partial<RegisterData>) {
-        Object.assign(this, partial);
-    }
-}
-class LoginData {
-    email: string
-    password: string
-    constructor(partial: Partial<RegisterData>) {
-        Object.assign(this, partial);
-    }
-}
-
-export class RegisterEntity extends SuccessResDTO {
-    @Type(() => RegisterData)
-    data: RegisterData
-}
-
-export class LoginEntity extends SuccessResDTO {
-    @Type(() => LoginData)
-    data: LoginData
-}
-
+// custom DTO
 export class RefreshTokenBodyDTO {
+    @IsNotEmpty({ message: "Refresh Token is required" })
     @IsString()
-    refreshToken: string
+    refreshToken: string;
 }
 
-export class RefreshtokenEntity extends LoginEntity {
-
-}
-
-
-export class LogoutBodyDTO extends RefreshTokenBodyDTO { }
-
-export class LogoutResDTO {
-    message: string
-    constructor(partial: Partial<LogoutResDTO>) {
-        Object.assign(this, partial);
-    }
+export class LogoutBodyDTO {
+    @IsNotEmpty({ message: "Refresh Token is required" })
+    @IsString()
+    refreshToken: string;
 }

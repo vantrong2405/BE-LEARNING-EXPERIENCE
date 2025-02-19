@@ -23,6 +23,17 @@ export class TokenService {
         });
     }
 
+    signAccessAndRefreshToken(payload: { userId: number, verify: number }) {
+        return Promise.all([
+            this.signAccessToken(payload),
+            this.signRefreshToken(payload)
+        ]);
+    }
+
+    decodeRefreshToken(refresh_token: string) {
+        return this.verifyRefreshToken(refresh_token)
+    }
+
     verifyAccessToken(token: string): Promise<TokenPayload> {
         return this.jwtService.verifyAsync(token, {
             secret: envConfig.ACCESS_TOKEN_SECRET,

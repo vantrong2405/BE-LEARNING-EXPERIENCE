@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Users" ADD COLUMN     "verify" INTEGER NOT NULL DEFAULT 0;

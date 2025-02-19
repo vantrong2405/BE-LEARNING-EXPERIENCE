@@ -27,6 +27,22 @@ class ConfigSchema {
     PORT: number
     @IsString()
     SECRET_API_KEY: string
+    @IsString()
+    GOOGLE_CLIENT_ID: string
+    @IsString()
+    GOOGLE_CLIENT_SECRET: string
+    @IsString()
+    GOOGLE_REDIRECT_URI: string
+    @IsString()
+    EMAIL_HOST: string
+    @IsString()
+    EMAIL_PORT: number
+    @IsString()
+    EMAIL_USER: string
+    @IsString()
+    EMAIL_PASSWORD: string
+    @IsString()
+    EMAIL_FROM: string
 }
 
 const configServer = plainToInstance(ConfigSchema, process.env)

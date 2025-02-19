@@ -24,7 +24,6 @@ export class AuthenticationGuard implements CanActivate {
             context.getHandler(),
             context.getClass(),
         ]) ?? { authTypes: [AuthType.None], options: { condition: ConditionGuard.And } };
-        console.log("🚀 ~ AuthenticationGuard ~ canActivate ~ authTypeValue:", authTypeValue)
 
         // ✅ Fix lỗi map trên `undefined` bằng cách kiểm tra authTypeValue.authTypes
         const guards = ('authTypes' in authTypeValue ? authTypeValue.authTypes : [AuthType.None]).map((authType) => this.authTypeGuardMap[authType]);
