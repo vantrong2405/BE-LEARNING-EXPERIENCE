@@ -13,13 +13,13 @@ model User {
   name                  String
   email                 String   @unique
   password              String
+  roleId                Int
+  verify                Int      @default(0)
   avatarUrl             String?
   bio                   String?
   gender                String? // male, female, other
-  roleId                Int
   email_verify_token    String?
   forgot_password_token String?
-  verify                Int      @default(0)
   isInstructor          Boolean  @default(false)
   instructorStatus      String?  // pending, approved, rejected
   instructorBio         String?
