@@ -8,6 +8,7 @@ import { MediaModule } from './routes/media/media.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { APP_FILTER } from '@nestjs/core';
+import { StaticModule } from './routes/static/static.module';
 @Module({
   imports: [SharedModule, AuthModule, CoursesModule, CategoryModule, MediaModule,
     ServeStaticModule.forRoot({
@@ -17,7 +18,8 @@ import { APP_FILTER } from '@nestjs/core';
         index: false,
         fallthrough: true
       }
-    }),],
+    }),
+    StaticModule,],
   controllers: [],
   providers: [
     {

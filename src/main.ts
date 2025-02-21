@@ -27,9 +27,7 @@ async function bootstrap() {
   }))
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalInterceptors(new TransformInterceptor());
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-    prefix: '/uploads'
-  });
+  app.enableCors();
   await app.listen(envConfig.PORT);
 }
 bootstrap();
