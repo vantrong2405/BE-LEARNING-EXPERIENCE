@@ -2,6 +2,7 @@ import { Controller, Get, HttpException, Param, Res, StreamableFile } from '@nes
 import { Response } from 'express';
 import { createReadStream, statSync } from 'fs';
 import { StaticService } from './static.service';
+import path from 'path';
 
 @Controller('static')
 export class StaticController {
@@ -13,9 +14,31 @@ export class StaticController {
             const imagePath = this.staticService.getImagePath(name);
             const stat = statSync(imagePath);
             const fileStream = createReadStream(imagePath);
+            const ext = path.extname(name).toLowerCase();
+            let contentType = 'image/jpeg';
+
+            // Set proper MIME type based on file extension
+            switch (ext) {
+                case '.png':
+                    contentType = 'image/png';
+                    break;
+                case '.gif':
+                    contentType = 'image/gif';
+                    break;
+                case '.webp':
+                    contentType = 'image/webp';
+                    break;
+                case '.jpg':
+                case '.jpeg':
+                    contentType = 'image/jpeg';
+                    break;
+            }
+
             res.set({
-                'Content-Type': 'image/*',
+                'Content-Type': contentType,
                 'Content-Length': stat.size,
+                'Content-Disposition': 'inline',
+                'Cache-Control': 'public, max-age=31536000'
             });
             fileStream.pipe(res);
         } catch (error) {
