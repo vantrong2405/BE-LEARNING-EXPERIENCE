@@ -4,8 +4,10 @@ import { AppService } from './app.service'
 import { SharedModule } from './shared/shared.module';
 import { AuthModule } from './routes/auth/auth.module';
 // import { CatchEverythingFilter } from './shared/common/http-exception.filter'
+import { CoursesModule } from './courses/courses.module';
+import { CoursesModule } from './routes/course/course.module';
 @Module({
-  imports: [SharedModule, AuthModule],
+  imports: [SharedModule, AuthModule, CoursesModule],
   controllers: [AppController],
   providers: [
     AppService,
