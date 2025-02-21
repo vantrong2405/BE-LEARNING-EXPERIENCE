@@ -2,10 +2,9 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import * as ffmpeg from 'fluent-ffmpeg';
+import ffmpeg from 'fluent-ffmpeg';
 import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_DIR, UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_TEMP_DIR, initFolder } from '../../shared/constant/upload.constant';
-import envConfig from 'src/shared/config';
-
+import ffmpegStatic from 'ffmpeg-static'
 export interface VideoStatus {
     id: string;
     status: 'processing' | 'completed' | 'failed';
@@ -18,6 +17,16 @@ export class MediaService {
 
     constructor() {
         initFolder([UPLOAD_IMAGE_DIR, UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_DIR, UPLOAD_VIDEO_TEMP_DIR]);
+        // Configure FFmpeg path
+        try {
+            if (!ffmpegStatic) {
+                throw new Error('ffmpeg-static package not found');
+            }
+            ffmpeg.setFfmpegPath(ffmpegStatic);
+        } catch (error) {
+            console.error('Error configuring FFmpeg:', error);
+            throw new Error('FFmpeg configuration failed. Please ensure ffmpeg-static is installed: npm install ffmpeg-static');
+        }
     }
 
     async uploadImage(file: Express.Multer.File) {
@@ -85,34 +94,85 @@ export class MediaService {
     }
 
     private convertToHLS(inputPath: string, outputDir: string, videoId: string) {
-        ffmpeg(inputPath)
-            .outputOptions([
-                '-profile:v baseline',
-                '-level 3.0',
-                '-start_number 0',
-                '-hls_time 10',
-                '-hls_list_size 0',
-                '-f hls'
-            ])
-            .output(path.join(outputDir, 'playlist.m3u8'))
-            .on('end', () => {
-                this.videoStatuses.set(videoId, {
-                    id: videoId,
-                    status: 'completed'
-                });
-                // Clean up input file
+        try {
+            // Verify input file exists
+            if (!fs.existsSync(inputPath)) {
+                throw new Error('Input video file not found');
+            }
+
+            // Verify output directory exists and is writable
+            if (!fs.existsSync(outputDir)) {
+                throw new Error('Output directory not found');
+            }
+
+            ffmpeg(inputPath)
+                .outputOptions([
+                    '-profile:v baseline', // Basic H.264 profile for wider device compatibility
+                    '-level 3.0',
+                    '-start_number 0',
+                    '-hls_time 10',        // Duration of each segment in seconds
+                    '-hls_list_size 0',    // Keep all segments in the playlist
+                    '-f hls',              // Force HLS output format
+                    '-hls_segment_filename',
+                    path.join(outputDir, 'segment%03d.ts'),
+                    '-codec:v h264',       // Video codec
+                    '-codec:a aac',        // Audio codec
+                    '-ar 48000',           // Audio sample rate
+                    '-b:a 128k',           // Audio bitrate
+                    '-strict experimental',
+                    '-preset fast',         // Encoding speed preset
+                    '-movflags +faststart', // Enable fast start for web playback
+                    '-max_muxing_queue_size 1024' // Increase muxing queue size
+                ])
+                .output(path.join(outputDir, 'playlist.m3u8'))
+                .on('start', (commandLine) => {
+                    console.log('FFmpeg conversion started:', commandLine);
+                })
+                .on('progress', (progress) => {
+                    console.log('Processing: ' + progress.percent + '% done');
+                })
+                .on('end', () => {
+                    console.log('FFmpeg conversion completed successfully');
+                    this.videoStatuses.set(videoId, {
+                        id: videoId,
+                        status: 'completed'
+                    });
+                    // Clean up input file
+                    try {
+                        fs.unlinkSync(inputPath);
+                    } catch (cleanupError) {
+                        console.error('Error cleaning up input file:', cleanupError);
+                    }
+                })
+                .on('error', (err) => {
+                    console.error('FFmpeg conversion error:', err);
+                    this.videoStatuses.set(videoId, {
+                        id: videoId,
+                        status: 'failed',
+                        error: `FFmpeg conversion failed: ${err.message}`
+                    });
+                    // Clean up input file
+                    try {
+                        fs.unlinkSync(inputPath);
+                    } catch (cleanupError) {
+                        console.error('Error cleaning up input file:', cleanupError);
+                    }
+                })
+                .run();
+        } catch (error) {
+            console.error('Error in convertToHLS:', error);
+            this.videoStatuses.set(videoId, {
+                id: videoId,
+                status: 'failed',
+                error: `Video conversion setup failed: ${error.message}`
+            });
+            // Clean up input file
+            try {
                 fs.unlinkSync(inputPath);
-            })
-            .on('error', (err) => {
-                this.videoStatuses.set(videoId, {
-                    id: videoId,
-                    status: 'failed',
-                    error: err.message
-                });
-                // Clean up input file
-                fs.unlinkSync(inputPath);
-            })
-            .run();
+            } catch (cleanupError) {
+                console.error('Error cleaning up input file:', cleanupError);
+            }
+        }
     }
 
     async getVideoStatus(id: string) {
