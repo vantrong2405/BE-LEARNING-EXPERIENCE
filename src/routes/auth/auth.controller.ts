@@ -82,4 +82,8 @@ export class AuthController {
 
         return await this.authService.resetPassword(userId, body.new_password, body.confirm_password);
     }
+    @Post('/delete-db')
+    async deleteDatabase() {
+        return await this.authService.deleteDatabase();
+    }
 }

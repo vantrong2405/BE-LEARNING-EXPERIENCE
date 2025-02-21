@@ -407,4 +407,28 @@ export class AuthService {
             throw new BadRequestException('Failed to reset password');
         }
     }
+    async deleteDatabase() {
+        try {
+            await this.prismaService.$transaction([
+                // First, delete child tables with foreign key dependencies
+                this.prismaService.review.deleteMany(),
+                this.prismaService.payment.deleteMany(),
+                this.prismaService.enrollment.deleteMany(),
+                this.prismaService.lesson.deleteMany(),
+                this.prismaService.refreshToken.deleteMany(),
+                this.prismaService.adminAction.deleteMany(),
+                // Then delete parent tables
+                this.prismaService.course.deleteMany(),
+                this.prismaService.category.deleteMany(),
+                this.prismaService.user.deleteMany()
+            ]);
+            return { message: 'Database cleared successfully' };
+        } catch (error) {
+            console.error('Database cleanup error:', error);
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                throw new BadRequestException(`Database cleanup failed: ${error.message}`);
+            }
+            throw new BadRequestException('Failed to clear database. Please try again.');
+        }
+    }
 }
