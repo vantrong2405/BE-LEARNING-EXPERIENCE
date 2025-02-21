@@ -43,6 +43,9 @@ class ConfigSchema {
     EMAIL_PASSWORD: string
     @IsString()
     EMAIL_FROM: string
+    @IsString()
+    CLIENT_URL: string
+
 }
 
 const configServer = plainToInstance(ConfigSchema, process.env)

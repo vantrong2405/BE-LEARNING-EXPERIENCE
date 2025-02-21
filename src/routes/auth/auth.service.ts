@@ -328,7 +328,7 @@ export class AuthService {
                 data: { forgot_password_token }
             });
 
-            await this.emailService.sendResetPasswordEmail(user.email, forgot_password_token);
+            await this.emailService.sendPasswordResetEmail(user.email, forgot_password_token);
 
             return {
                 message: 'Please check your email for password reset instructions',
