@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import envConfig from '../config';
 import { TokenPayload } from '../types/jwt.type';
@@ -34,15 +34,61 @@ export class TokenService {
         return this.verifyRefreshToken(refresh_token)
     }
 
-    verifyAccessToken(token: string): Promise<TokenPayload> {
-        return this.jwtService.verifyAsync(token, {
-            secret: envConfig.ACCESS_TOKEN_SECRET,
-        });
+    decodeAccessToken(access_token: string) {
+        return this.verifyAccessToken(access_token)
     }
 
-    verifyRefreshToken(token: string): Promise<TokenPayload> {
-        return this.jwtService.verifyAsync(token, {
-            secret: envConfig.REFRESH_TOKEN_SECRET,
-        });
+    async verifyAccessToken(token: string): Promise<TokenPayload> {
+        try {
+            if (!token) {
+                throw new UnauthorizedException('Token is required');
+            }
+
+            const decoded = await this.jwtService.verifyAsync<TokenPayload>(token, {
+                secret: envConfig.ACCESS_TOKEN_SECRET,
+                algorithms: ['HS256']
+            });
+
+            if (!decoded || !decoded.userId) {
+                throw new UnauthorizedException('Invalid token format');
+            }
+
+            return decoded;
+        } catch (error) {
+            if (error.name === 'JsonWebTokenError') {
+                throw new UnauthorizedException('Invalid token signature');
+            }
+            if (error.name === 'TokenExpiredError') {
+                throw new UnauthorizedException('Token has expired');
+            }
+            throw new UnauthorizedException('Invalid token');
+        }
+    }
+
+    async verifyRefreshToken(token: string): Promise<TokenPayload> {
+        try {
+            if (!token) {
+                throw new UnauthorizedException('Refresh token is required');
+            }
+
+            const decoded = await this.jwtService.verifyAsync(token, {
+                secret: envConfig.REFRESH_TOKEN_SECRET,
+                algorithms: ['HS256']
+            });
+
+            if (!decoded) {
+                throw new UnauthorizedException('Invalid refresh token format');
+            }
+
+            return decoded;
+        } catch (error) {
+            if (error.name === 'JsonWebTokenError') {
+                throw new UnauthorizedException('Invalid refresh token signature');
+            }
+            if (error.name === 'TokenExpiredError') {
+                throw new UnauthorizedException('Refresh token has expired');
+            }
+            throw new UnauthorizedException('Invalid refresh token');
+        }
     }
 }

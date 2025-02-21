@@ -1,8 +1,9 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { HashingService } from 'src/shared/services/hashing.service';
 import { PrismaService } from 'src/shared/services/prisma.service';
 import { LoginBodyDTO, RegisterBodyDTO } from './auth.dto';
 import { TokenService } from 'src/shared/services/token.service';
+import { EmailService } from 'src/shared/services/email.service';
 import { isNotFoundPrismaError, isUniqueConstrainError } from 'src/shared/helpers';
 import { generateUsername } from 'src/utils/helpers';
 import { Prisma } from '@prisma/client';
@@ -14,12 +15,14 @@ export class AuthService {
     constructor(
         private readonly haShingService: HashingService,
         private readonly prismaService: PrismaService,
-        private readonly tokenService: TokenService
+        private readonly tokenService: TokenService,
+        private readonly emailService: EmailService
     ) { }
     async register(body: RegisterBodyDTO) {
         try {
             const hashedPassword = await this.haShingService.hash(body.password)
             const dateOfBirth = body.dateOfBirth ? new Date(body.dateOfBirth) : null;
+            const emailVerifyToken = await this.tokenService.signAccessToken({ userId: 0 });
             const user = await this.prismaService.user.create({
                 data: {
                     name: body.name,
@@ -27,7 +30,9 @@ export class AuthService {
                     email: body.email,
                     password: hashedPassword,
                     dateOfBirth: dateOfBirth,
-                    roleId: body.roleId
+                    roleId: body.roleId,
+                    email_verify_token: emailVerifyToken,
+                    verify: 0
                 } as Prisma.UserUncheckedCreateInput,
                 select: {
                     id: true,
@@ -39,9 +44,12 @@ export class AuthService {
                     createdAt: true,
                 },
             })
+
+            await this.emailService.sendVerificationEmail(user.email, emailVerifyToken);
+
             return {
                 user,
-                message: 'Register success'
+                message: 'Registration successful. Please check your email to verify your account.'
             }
         } catch (error) {
             console.log("🚀 ~ AuthService ~ register ~ error:", error)
@@ -196,7 +204,6 @@ export class AuthService {
         }
     }
 
-
     private async getOauthGoogleToken(code: string) {
         const body = {
             code,
@@ -235,6 +242,161 @@ export class AuthService {
             email: string
             email_verified: string
             access_type: string
+        }
+    }
+
+    async verifyEmail(userId: number) {
+        try {
+            const user = await this.prismaService.user.findFirst({
+                where: {
+                    id: userId
+                }
+            });
+
+            if (!user) {
+                throw new BadRequestException('Invalid verification token');
+            }
+
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: {
+                    verify: 1,
+                    email_verify_token: null
+                }
+            });
+
+            return { message: 'Email verified successfully' };
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to verify email');
+        }
+    }
+
+    async resendVerificationEmail(userId: number) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId }
+            });
+
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            if (user.verify === 1) {
+                throw new BadRequestException('Email is already verified');
+            }
+
+            const emailVerifyToken = await this.tokenService.signAccessToken({ userId: user.id });
+
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: { email_verify_token: emailVerifyToken }
+            });
+
+            await this.emailService.sendVerificationEmail(user.email, emailVerifyToken);
+
+            return { message: 'Verification email has been resent' };
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to resend verification email');
+        }
+    }
+
+    async forgotPassword(email: string) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { email },
+                select: {
+                    id: true,
+                    email: true,
+                    name: true
+                }
+            });
+
+            if (!user) {
+                throw new BadRequestException('Email not found');
+            }
+
+            const forgot_password_token = await this.tokenService.signAccessToken({ userId: user.id });
+
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: { forgot_password_token }
+            });
+
+            await this.emailService.sendResetPasswordEmail(user.email, forgot_password_token);
+
+            return {
+                message: 'Please check your email for password reset instructions',
+                forgot_password_token
+            };
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to process forgot password request');
+        }
+    }
+
+    async verifyForgotPassword(forgot_password_token: string) {
+        try {
+            const decodedToken = await this.tokenService.verifyAccessToken(forgot_password_token);
+            const { userId } = decodedToken;
+
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId }
+            });
+
+            if (!user || user.forgot_password_token !== forgot_password_token) {
+                throw new BadRequestException('Invalid or expired reset password token');
+            }
+
+            return {
+                message: 'Verify forgot is success',
+                userId: user.id
+            };
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Invalid reset password token');
+        }
+    }
+
+    async resetPassword(userId: number, newPassword: string, confirmPassword: string) {
+        try {
+            if (newPassword !== confirmPassword) {
+                throw new BadRequestException('Passwords do not match');
+            }
+
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId }
+            });
+
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            const hashedPassword = await this.haShingService.hash(newPassword);
+
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: {
+                    password: hashedPassword,
+                    forgot_password_token: null
+                }
+            });
+
+            return { message: 'Password has been reset successfully' };
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to reset password');
         }
     }
 }

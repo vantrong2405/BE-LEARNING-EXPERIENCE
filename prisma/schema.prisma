@@ -19,7 +19,11 @@ model User {
   roleId                Int
   email_verify_token    String?
   forgot_password_token String?
-  verify                Int
+  verify                Int      @default(0)
+  isInstructor          Boolean  @default(false)
+  instructorStatus      String?  // pending, approved, rejected
+  instructorBio         String?
+  expertise            String?
   dateOfBirth           DateTime
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
@@ -84,12 +88,21 @@ model RolePermission {
 }
 
 model Course {
-  id           Int      @id @default(autoincrement())
-  title        String
-  description  String?
-  price        Decimal
-  instructorId Int
-  createdAt    DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String?
+  price           Decimal
+  instructorId    Int
+  thumbnail       String?
+  level           String   // beginner, intermediate, advanced
+  category        String
+  language        String
+  duration        Int      // in minutes
+  status          String   @default("draft") // draft, published, archived
+  rating          Float?   @default(0)
+  enrollmentCount Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   instructor   User          @relation(fields: [instructorId], references: [id], name: "InstructorCourses")
   courseDetail CourseDetail?
@@ -103,13 +116,15 @@ model Course {
 }
 
 model CourseDetail {
-  id             Int      @id @default(autoincrement())
-  courseId       Int      @unique
-  syllabus       String?
-  requirements   String?
-  targetAudience String?
-  extraMaterials String?
-  createdAt      DateTime @default(now())
+  id                Int      @id @default(autoincrement())
+  courseId          Int      @unique
+  syllabus          String?
+  requirements      String?
+  targetAudience    String?
+  learningObjectives String?
+  extraMaterials    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   course Course @relation(fields: [courseId], references: [id])
 
@@ -117,12 +132,17 @@ model CourseDetail {
 }
 
 model Lesson {
-  id       Int     @id @default(autoincrement())
-  courseId Int
-  title    String
-  content  String?
-  videoUrl String?
-  isFree   Boolean @default(false)
+  id          Int      @id @default(autoincrement())
+  courseId    Int
+  title       String
+  content     String?
+  videoUrl    String?
+  duration    Int?     // in minutes
+  order       Int      // for lesson ordering
+  isFree      Boolean  @default(false)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   course  Course   @relation(fields: [courseId], references: [id])
   uploads Upload[]

@@ -8,6 +8,8 @@ import {
     IsOptional,
     IsString,
     Length,
+    Matches,
+    MinLength
 } from "class-validator";
 import { Match } from "src/shared/decorators/custom-validator.decorator";
 
@@ -43,7 +45,7 @@ export class RegisterBodyDTO {
     @IsOptional()
     @IsString()
     @IsIn(["male", "female", "other"], { message: "Gender must be 'male', 'female', or 'other'" })
-    gender?: string; // male, female, other
+    gender?: string;
 
     @IsNotEmpty()
     @Type(() => Date)
@@ -53,7 +55,7 @@ export class RegisterBodyDTO {
     @IsNotEmpty()
     @IsNumber({}, { message: "Role ID must be a number" })
     @IsIn([0, 1, 2], { message: "roleId must be 0 (student), 1 (instructor), or 2 (admin)" })
-    roleId: number; // 0 = Student, 1 = Instructor, 2 = Admin
+    roleId: number;
 }
 
 // custom DTO
@@ -67,4 +69,43 @@ export class LogoutBodyDTO {
     @IsNotEmpty({ message: "Refresh Token is required" })
     @IsString()
     refreshToken: string;
+}
+
+export class RequestEmailVerificationDTO {
+    @IsNotEmpty()
+    @IsEmail()
+    email: string;
+}
+
+export class VerifyEmailDTO {
+    @IsNotEmpty()
+    @IsString()
+    email_verify_token: string;
+}
+
+export class RequestPasswordResetDTO {
+    @IsNotEmpty()
+    @IsEmail()
+    email: string;
+}
+
+export class ForgotPasswordDTO {
+    @IsNotEmpty()
+    @IsEmail()
+    email: string;
+}
+
+export class ResetPasswordDTO {
+    @IsNotEmpty()
+    @IsString()
+    forgot_password_token: string;
+
+    @IsNotEmpty()
+    @IsString()
+    @Length(6, 20)
+    new_password: string;
+
+    @IsNotEmpty()
+    @Match("new_password")
+    confirm_password: string;
 }
