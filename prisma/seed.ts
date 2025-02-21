@@ -9,6 +9,16 @@ async function main() {
         Admin = 2
     }
 
+    // Seeding Roles
+    await prisma.role.createMany({
+        data: [
+            { id: RoleType.User, name: 'User', description: 'Regular user with basic access' },
+            { id: RoleType.Instructor, name: 'Instructor', description: 'Course instructor with teaching privileges' },
+            { id: RoleType.Admin, name: 'Admin', description: 'System administrator with full access' }
+        ],
+        skipDuplicates: true,
+    });
+
     // Seeding Categories
     await prisma.category.createMany({
         data: [
