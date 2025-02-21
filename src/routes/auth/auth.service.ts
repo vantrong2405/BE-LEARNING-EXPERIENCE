@@ -33,7 +33,7 @@ export class AuthService {
                     roleId: body.roleId,
                     email_verify_token: emailVerifyToken,
                     verify: 0
-                } as Prisma.UserUncheckedCreateInput,
+                },
                 select: {
                     id: true,
                     name: true,

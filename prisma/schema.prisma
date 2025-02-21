@@ -7,44 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Verify {
-  Not_Verified
-  Verified
-}
-
-enum StatusAccount {
-  Banned
-  Active
-}
-
-enum PaymentStatus {
-  Pending
-  Completed
-  Failed
-}
-
 enum UploadType {
   Image
   Video
 }
 
 model User {
-  id                    Int           @id @default(autoincrement())
-  username              String        @unique
+  id                    Int      @id @default(autoincrement())
+  username              String   @unique
   name                  String
-  email                 String        @unique
+  email                 String   @unique
   password              String
-  role                  Int
-  verify                Verify        @default(Not_Verified)
-  status_account        StatusAccount
+  roleId                  Int
+  verify                Int      @default(0)
+  status_account        Int      @default(1)
   dateOfBirth           DateTime
   avatarUrl             String?
   bio                   String?
   gender                String?
   email_verify_token    String?
   forgot_password_token String?
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   enrollments   Enrollment[]
   reviews       Review[]
@@ -107,15 +91,15 @@ model Enrollment {
 }
 
 model Payment {
-  id            Int           @id @default(autoincrement())
-  user          User          @relation(fields: [userId], references: [id])
+  id            Int      @id @default(autoincrement())
+  user          User     @relation(fields: [userId], references: [id])
   userId        Int
-  course        Course        @relation(fields: [courseId], references: [id])
+  course        Course   @relation(fields: [courseId], references: [id])
   courseId      Int
   amount        Float
-  status        PaymentStatus
-  transactionId String        @unique
-  createdAt     DateTime      @default(now())
+  status        Int
+  transactionId String   @unique
+  createdAt     DateTime @default(now())
 }
 
 model Category {
