@@ -30,7 +30,7 @@ export class MediaService {
 
             return {
                 fileName,
-                url: `http://localhost:${envConfig.PORT}/uploads/images/${fileName}`,
+                url: `http://localhost:4000/static/image/${fileName}`,
                 mimetype: file.mimetype,
                 size: file.size
             };
@@ -49,7 +49,7 @@ export class MediaService {
 
             return {
                 fileName,
-                url: `http://localhost:${envConfig.PORT}/uploads/videos/${fileName}`,
+                url: `http://localhost:4000/static/video-stream/${fileName}`,
                 mimetype: file.mimetype,
                 size: file.size
             };

@@ -1,7 +1,6 @@
 import { Controller, Get, HttpException, Param, Res, StreamableFile } from '@nestjs/common';
 import { Response } from 'express';
 import { createReadStream, statSync } from 'fs';
-import { join } from 'path';
 import { StaticService } from './static.service';
 
 @Controller('static')
