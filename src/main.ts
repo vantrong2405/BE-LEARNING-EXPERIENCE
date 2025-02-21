@@ -4,9 +4,12 @@ import { UnprocessableEntityException, ValidationPipe } from '@nestjs/common'
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor'
 import { TransformInterceptor } from './shared/interceptors/transform.interceptor'
 import envConfig from './shared/config'
+import { join } from 'path'
+import { NestExpressApplication } from '@nestjs/platform-express'
+import { log } from 'console'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create<NestExpressApplication>(AppModule)
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true, //tự động loại bỏ các field không được khai báo decorator trong DTO
     forbidNonWhitelisted: true, //tự động trả về lỗi nếu các field không được khai báo trong DTO mà client truyền lên
@@ -23,9 +26,17 @@ async function bootstrap() {
       return new UnprocessableEntityException(errors)
     }
   }))
-  app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalInterceptors(new TransformInterceptor());
-  console.log('Server is running on http://localhost:4000')
-  await app.listen(envConfig.PORT ?? 4000)
+  app.useGlobalInterceptors(new LoggingInterceptor())
+  app.useGlobalInterceptors(new TransformInterceptor())
+  app.enableCors()
+  app.useStaticAssets(join(__dirname, '..', 'uploads', 'images'), {
+    prefix: '/static/image',
+  })
+  app.useStaticAssets(join(__dirname, '..', 'uploads', 'videos'), {
+    prefix: '/static/video-stream',
+  })
+  console.log('Server is running: ' + envConfig.SERVER_URL)
+
+  await app.listen(envConfig.PORT)
 }
 bootstrap()

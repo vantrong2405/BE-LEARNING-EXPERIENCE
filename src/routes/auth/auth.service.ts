@@ -22,7 +22,6 @@ export class AuthService {
         try {
             const hashedPassword = await this.haShingService.hash(body.password)
             const dateOfBirth = body.dateOfBirth ? new Date(body.dateOfBirth) : null;
-            const emailVerifyToken = await this.tokenService.signAccessToken({ userId: 0 });
             const user = await this.prismaService.user.create({
                 data: {
                     name: body.name,
@@ -31,9 +30,8 @@ export class AuthService {
                     password: hashedPassword,
                     dateOfBirth: dateOfBirth,
                     roleId: body.roleId,
-                    email_verify_token: emailVerifyToken,
                     verify: 0
-                } as Prisma.UserUncheckedCreateInput,
+                },
                 select: {
                     id: true,
                     name: true,
@@ -44,6 +42,12 @@ export class AuthService {
                     createdAt: true,
                 },
             })
+
+            const emailVerifyToken = await this.tokenService.signAccessToken({ userId: user.id });
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: { email_verify_token: emailVerifyToken }
+            });
 
             await this.emailService.sendVerificationEmail(user.email, emailVerifyToken);
 
@@ -245,7 +249,7 @@ export class AuthService {
         }
     }
 
-    async verifyEmail(userId: number) {
+    async verifyEmail(userId: number, providedToken: string) {
         try {
             const user = await this.prismaService.user.findFirst({
                 where: {
@@ -254,6 +258,10 @@ export class AuthService {
             });
 
             if (!user) {
+                throw new BadRequestException('Invalid verification token');
+            }
+
+            if (user.email_verify_token !== providedToken) {
                 throw new BadRequestException('Invalid verification token');
             }
 
@@ -397,6 +405,30 @@ export class AuthService {
                 throw error;
             }
             throw new BadRequestException('Failed to reset password');
+        }
+    }
+    async deleteDatabase() {
+        try {
+            await this.prismaService.$transaction([
+                // First, delete child tables with foreign key dependencies
+                this.prismaService.review.deleteMany(),
+                this.prismaService.payment.deleteMany(),
+                this.prismaService.enrollment.deleteMany(),
+                this.prismaService.lesson.deleteMany(),
+                this.prismaService.refreshToken.deleteMany(),
+                this.prismaService.adminAction.deleteMany(),
+                // Then delete parent tables
+                this.prismaService.course.deleteMany(),
+                this.prismaService.category.deleteMany(),
+                this.prismaService.user.deleteMany()
+            ]);
+            return { message: 'Database cleared successfully' };
+        } catch (error) {
+            console.error('Database cleanup error:', error);
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                throw new BadRequestException(`Database cleanup failed: ${error.message}`);
+            }
+            throw new BadRequestException('Failed to clear database. Please try again.');
         }
     }
 }
