@@ -22,7 +22,6 @@ export class AuthService {
         try {
             const hashedPassword = await this.haShingService.hash(body.password)
             const dateOfBirth = body.dateOfBirth ? new Date(body.dateOfBirth) : null;
-            const emailVerifyToken = await this.tokenService.signAccessToken({ userId: 0 });
             const user = await this.prismaService.user.create({
                 data: {
                     name: body.name,
@@ -31,9 +30,8 @@ export class AuthService {
                     password: hashedPassword,
                     dateOfBirth: dateOfBirth,
                     roleId: body.roleId,
-                    email_verify_token: emailVerifyToken,
                     verify: 0
-                } as Prisma.UserUncheckedCreateInput,
+                },
                 select: {
                     id: true,
                     name: true,
@@ -44,6 +42,12 @@ export class AuthService {
                     createdAt: true,
                 },
             })
+
+            const emailVerifyToken = await this.tokenService.signAccessToken({ userId: user.id });
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: { email_verify_token: emailVerifyToken }
+            });
 
             await this.emailService.sendVerificationEmail(user.email, emailVerifyToken);
 
@@ -245,7 +249,7 @@ export class AuthService {
         }
     }
 
-    async verifyEmail(userId: number) {
+    async verifyEmail(userId: number, providedToken: string) {
         try {
             const user = await this.prismaService.user.findFirst({
                 where: {
@@ -254,6 +258,10 @@ export class AuthService {
             });
 
             if (!user) {
+                throw new BadRequestException('Invalid verification token');
+            }
+
+            if (user.email_verify_token !== providedToken) {
                 throw new BadRequestException('Invalid verification token');
             }
 

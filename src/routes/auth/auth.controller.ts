@@ -44,7 +44,7 @@ export class AuthController {
         const decodedToken = await this.tokenService.verifyAccessToken(body.email_verify_token);
         const { userId } = decodedToken;
 
-        return await this.authService.verifyEmail(userId);
+        return await this.authService.verifyEmail(userId, body.email_verify_token);
     }
 
     @Post('/resend-verify-email')

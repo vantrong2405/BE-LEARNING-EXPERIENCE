@@ -3,8 +3,13 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // Hoặc "mysql" tùy vào DB bạn dùng
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum UploadType {
+  Image
+  Video
 }
 
 model User {
@@ -13,277 +18,146 @@ model User {
   name                  String
   email                 String   @unique
   password              String
-  roleId                Int
+  roleId                  Int
   verify                Int      @default(0)
+  status_account        Int      @default(1)
+  dateOfBirth           DateTime
   avatarUrl             String?
   bio                   String?
-  gender                String? // male, female, other
+  gender                String?
   email_verify_token    String?
   forgot_password_token String?
-  isInstructor          Boolean  @default(false)
-  instructorStatus      String?  // pending, approved, rejected
-  instructorBio         String?
-  expertise            String?
-  dateOfBirth           DateTime
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  role             Role           @relation(fields: [roleId], references: [id])
-  refreshTokens    RefreshToken[]
-  courses          Course[]       @relation("InstructorCourses")
-  enrollments      Enrollment[]
-  payments         Payment[]
-  testResults      TestResult[]
-  messagesSent     Message[]      @relation("MessageSender")
-  messagesReceived Message[]      @relation("MessageReceiver")
-  chatsUser1       Chat[]         @relation("ChatUser1")
-  chatsUser2       Chat[]         @relation("ChatUser2")
-  uploads          Upload[]
-
-  @@map("Users")
-}
-
-model RefreshToken {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  token     String   @unique
-  expiresAt DateTime
-  initAt    DateTime @default(now())
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@map("Refresh_Tokens")
-}
-
-model Role {
-  id              Int              @id @default(autoincrement())
-  name            String           @unique
-  description     String?
-  users           User[]
-  rolePermissions RolePermission[]
-
-  @@map("Roles")
-}
-
-model Permission {
-  id              Int              @id @default(autoincrement())
-  name            String           @unique
-  description     String?
-  rolePermissions RolePermission[]
-
-  @@map("Permissions")
-}
-
-model RolePermission {
-  id           Int @id @default(autoincrement())
-  roleId       Int
-  permissionId Int
-
-  role       Role       @relation(fields: [roleId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
-
-  @@unique([roleId, permissionId])
-  @@map("Role_Permissions")
+  enrollments   Enrollment[]
+  reviews       Review[]
+  payments      Payment[]
+  refreshTokens RefreshToken[]
+  courses       Course[]       @relation("CourseInstructor")
+  adminActions  AdminAction[]  @relation("AdminActions")
+  AdminAction   AdminAction[]
 }
 
 model Course {
-  id              Int      @id @default(autoincrement())
-  title           String
-  description     String?
-  price           Decimal
-  instructorId    Int
-  thumbnail       String?
-  level           String   // beginner, intermediate, advanced
-  category        String
-  language        String
-  duration        Int      // in minutes
-  status          String   @default("draft") // draft, published, archived
-  rating          Float?   @default(0)
-  enrollmentCount Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String?
+  price        Float     @default(0.00)
+  thumbnailUrl String?
+  bannerUrl    String
+  instructor   User      @relation("CourseInstructor", fields: [instructorId], references: [id])
+  instructorId Int
+  category     Category? @relation(fields: [categoryId], references: [id])
+  categoryId   Int?
+  isPublished  Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  instructor   User          @relation(fields: [instructorId], references: [id], name: "InstructorCourses")
-  courseDetail CourseDetail?
-  lessons      Lesson[]
-  enrollments  Enrollment[]
-  payments     Payment[]
-  tests        Test[]
-  Upload       Upload[]
-
-  @@map("Courses")
-}
-
-model CourseDetail {
-  id                Int      @id @default(autoincrement())
-  courseId          Int      @unique
-  syllabus          String?
-  requirements      String?
-  targetAudience    String?
-  learningObjectives String?
-  extraMaterials    String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  course Course @relation(fields: [courseId], references: [id])
-
-  @@map("Course_Detail")
+  lessons     Lesson[]
+  enrollments Enrollment[]
+  reviews     Review[]
+  payments    Payment[]
+  uploads     Upload[]
 }
 
 model Lesson {
-  id          Int      @id @default(autoincrement())
-  courseId    Int
-  title       String
-  content     String?
-  videoUrl    String?
-  duration    Int?     // in minutes
-  order       Int      // for lesson ordering
-  isFree      Boolean  @default(false)
-  isPublished Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  Int
+  title     String
+  content   String?
+  order     Int
+  createdAt DateTime @default(now())
 
-  course  Course   @relation(fields: [courseId], references: [id])
-  uploads Upload[]
+  videos Video[]
+}
 
-  @@map("Lessons")
+model Video {
+  id       Int    @id @default(autoincrement())
+  lesson   Lesson @relation(fields: [lessonId], references: [id])
+  lessonId Int
+  videoUrl String
+  duration Int
 }
 
 model Enrollment {
-  id           Int      @id @default(autoincrement())
-  userId       Int
-  courseId     Int
-  purchaseDate DateTime @default(now())
-  accessType   String // lifetime, vip
-
-  user   User   @relation(fields: [userId], references: [id])
-  course Course @relation(fields: [courseId], references: [id])
-
-  @@map("Enrollments")
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  course     Course   @relation(fields: [courseId], references: [id])
+  courseId   Int
+  enrolledAt DateTime @default(now())
 }
 
 model Payment {
   id            Int      @id @default(autoincrement())
+  user          User     @relation(fields: [userId], references: [id])
   userId        Int
+  course        Course   @relation(fields: [courseId], references: [id])
   courseId      Int
-  amount        Decimal
-  paymentMethod String // credit_card, paypal, momo
-  status        String // pending, completed, failed
-  paymentDate   DateTime @default(now())
-
-  user   User   @relation(fields: [userId], references: [id])
-  course Course @relation(fields: [courseId], references: [id])
-
-  @@map("Payments")
+  amount        Float
+  status        Int
+  transactionId String   @unique
+  createdAt     DateTime @default(now())
 }
 
-model Voucher {
-  id            Int      @id @default(autoincrement())
-  code          String   @unique
-  discountType  String // percent, fixed_amount
-  discountValue Decimal
-  validFrom     DateTime
-  validTo       DateTime
-  status        String // active, expired, used
-
-  @@map("Vouchers")
+model Category {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  courses Course[]
 }
 
-model Test {
-  id       Int    @id @default(autoincrement())
-  courseId Int
-  title    String
-
-  course      Course       @relation(fields: [courseId], references: [id])
-  questions   Question[]
-  testResults TestResult[]
-
-  @@map("Tests")
-}
-
-model Question {
-  id           Int    @id @default(autoincrement())
-  testId       Int
-  questionText String
-  questionType String // multiple_choice, short_answer
-
-  test    Test     @relation(fields: [testId], references: [id])
-  answers Answer[]
-
-  @@map("Questions")
-}
-
-model Answer {
-  id         Int     @id @default(autoincrement())
-  questionId Int
-  answerText String
-  isCorrect  Boolean
-
-  question Question @relation(fields: [questionId], references: [id])
-
-  @@map("Answers")
-}
-
-model TestResult {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  testId      Int
-  score       Int
-  completedAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-  test Test @relation(fields: [testId], references: [id])
-
-  @@map("Test_Results")
-}
-
-model Chat {
+model Review {
   id        Int      @id @default(autoincrement())
-  user1Id   Int
-  user2Id   Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  Int
+  rating    Int
+  comment   String?
   createdAt DateTime @default(now())
-
-  user1    User      @relation(fields: [user1Id], references: [id], name: "ChatUser1")
-  user2    User      @relation(fields: [user2Id], references: [id], name: "ChatUser2")
-  messages Message[]
-
-  @@map("Chats")
 }
 
-model Message {
-  id          Int      @id @default(autoincrement())
-  chatId      Int
-  senderId    Int
-  receiverId  Int
-  messageText String?
-  messageType String // text, image, file
-  sentAt      DateTime @default(now())
-  isRead      Boolean  @default(false)
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  description String?
+  permissions RolePermission[]
+}
 
-  chat     Chat @relation(fields: [chatId], references: [id])
-  sender   User @relation(fields: [senderId], references: [id], name: "MessageSender")
-  receiver User @relation(fields: [receiverId], references: [id], name: "MessageReceiver")
+model RolePermission {
+  id     Int  @id @default(autoincrement())
+  role   Role @relation(fields: [roleId], references: [id])
+  roleId Int
+  permId Int
+}
 
-  @@map("Messages")
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model Upload {
+  id         Int        @id @default(autoincrement())
+  course     Course     @relation(fields: [courseId], references: [id])
+  courseId   Int
+  uploadType UploadType
+  fileUrl    String
+  createdAt  DateTime   @default(now())
+}
+
+model AdminAction {
   id          Int      @id @default(autoincrement())
-  userId      Int?
-  courseId    Int?
-  lessonId    Int?
-  fileName    String
-  fileUrl     String
-  fileType    String // image, video, pdf
-  isThumbnail Boolean  @default(false)
-  isAvatar    Boolean  @default(false)
-  isMaterial  Boolean  @default(false)
-  uploadedAt  DateTime @default(now())
-
-  user   User?   @relation(fields: [userId], references: [id])
-  course Course? @relation(fields: [courseId], references: [id])
-  lesson Lesson? @relation(fields: [lessonId], references: [id])
-
-  @@map("Uploads")
+  admin       User     @relation("AdminActions", fields: [adminId], references: [id])
+  adminId     Int
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  action      String
+  description String?
+  createdAt   DateTime @default(now())
 }
