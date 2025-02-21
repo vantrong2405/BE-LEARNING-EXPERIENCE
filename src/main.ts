@@ -26,17 +26,17 @@ async function bootstrap() {
       return new UnprocessableEntityException(errors)
     }
   }))
-  app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalInterceptors(new TransformInterceptor());
-  app.enableCors();
+  app.useGlobalInterceptors(new LoggingInterceptor())
+  app.useGlobalInterceptors(new TransformInterceptor())
+  app.enableCors()
   app.useStaticAssets(join(__dirname, '..', 'uploads', 'images'), {
     prefix: '/static/image',
-  });
+  })
   app.useStaticAssets(join(__dirname, '..', 'uploads', 'videos'), {
     prefix: '/static/video-stream',
-  });
-  console.log('Server is running on port ' + envConfig.PORT);
+  })
+  console.log('Server is running: ' + envConfig.SERVER_URL)
 
-  await app.listen(envConfig.PORT);
+  await app.listen(envConfig.PORT)
 }
-bootstrap();
+bootstrap()
