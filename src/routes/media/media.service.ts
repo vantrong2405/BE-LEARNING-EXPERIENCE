@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import ffmpeg from 'fluent-ffmpeg';
 import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_DIR, UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_TEMP_DIR, initFolder } from '../../shared/constant/upload.constant';
 import ffmpegStatic from 'ffmpeg-static'
+import envConfig from 'src/shared/config';
 export interface VideoStatus {
     id: string;
     status: 'processing' | 'completed' | 'failed';
@@ -39,7 +40,7 @@ export class MediaService {
 
             return {
                 fileName,
-                url: `http://localhost:4000/static/image/${fileName}`,
+                url: `${envConfig.SERVER_URL}/static/image/${fileName}`,
                 mimetype: file.mimetype,
                 size: file.size
             };
@@ -58,7 +59,7 @@ export class MediaService {
 
             return {
                 fileName,
-                url: `http://localhost:4000/static/video-stream/${fileName}`,
+                url: `${envConfig.SERVER_URL}/static/video-stream/${fileName}`,
                 mimetype: file.mimetype,
                 size: file.size
             };

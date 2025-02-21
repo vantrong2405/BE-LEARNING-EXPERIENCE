@@ -35,7 +35,7 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'uploads', 'videos'), {
     prefix: '/static/video-stream',
   })
-  console.log('Server is running on port: ' + envConfig.PORT)
+  console.log('Server is running: ' + envConfig.SERVER_URL)
 
   await app.listen(envConfig.PORT)
 }
