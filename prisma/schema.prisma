@@ -18,7 +18,7 @@ model User {
   name                  String
   email                 String   @unique
   password              String
-  roleId                  Int
+  roleId                Int
   verify                Int      @default(0)
   status_account        Int      @default(1)
   dateOfBirth           DateTime
@@ -69,25 +69,29 @@ model Lesson {
   content   String?
   order     Int
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   videos Video[]
 }
 
 model Video {
-  id       Int    @id @default(autoincrement())
-  lesson   Lesson @relation(fields: [lessonId], references: [id])
-  lessonId Int
-  videoUrl String
-  duration Int
+  id        Int      @id @default(autoincrement())
+  lesson    Lesson   @relation(fields: [lessonId], references: [id])
+  lessonId  Int
+  videoUrl  String
+  duration  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Enrollment {
-  id         Int      @id @default(autoincrement())
-  user       User     @relation(fields: [userId], references: [id])
-  userId     Int
-  course     Course   @relation(fields: [courseId], references: [id])
-  courseId   Int
-  enrolledAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Payment {
@@ -100,12 +104,15 @@ model Payment {
   status        Int
   transactionId String   @unique
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Category {
-  id      Int      @id @default(autoincrement())
-  name    String   @unique
-  courses Course[]
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  courses   Course[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Review {
@@ -117,20 +124,26 @@ model Review {
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Role {
-  id          Int              @id @default(autoincrement())
-  name        String           @unique
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
   description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   permissions RolePermission[]
 }
 
 model RolePermission {
-  id     Int  @id @default(autoincrement())
-  role   Role @relation(fields: [roleId], references: [id])
-  roleId Int
-  permId Int
+  id        Int      @id @default(autoincrement())
+  role      Role     @relation(fields: [roleId], references: [id])
+  roleId    Int
+  permId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model RefreshToken {
@@ -140,6 +153,7 @@ model RefreshToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Upload {
@@ -149,6 +163,7 @@ model Upload {
   uploadType UploadType
   fileUrl    String
   createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 }
 
 model AdminAction {
@@ -160,4 +175,5 @@ model AdminAction {
   action      String
   description String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
