@@ -26,7 +26,7 @@ export class EmailService {
             .replace(/{{introduce}}/g, 'Verify Your Email')
             .replace(/{{user_receive}}/g, email)
             .replace(/{{description}}/g, 'Please click the button below to verify your email address.')
-            .replace(/{{link}}/g, verificationLink) // Đây là dòng quan trọng
+            .replace(/{{link}}/g, verificationLink)
             .replace(/{{user_send}}/g, 'doanvvantrong@support.dtu.com')
 
 
@@ -42,12 +42,12 @@ export class EmailService {
         const resetLink = `${envConfig.CLIENT_URL}/reset-password?token=${token}`
         const template = await fs.readFile('src/template/email.template.html', 'utf8')
         const emailContent = template
-            .replace('{{title}}', 'Password Reset')
-            .replace('{{introduce}}', 'Reset Your Password')
-            .replace('{{user_receive}}', email)
-            .replace('{{description}}', 'Please click the button below to reset your password.')
-            .replace('{{link}}', resetLink)
-            .replace('{{user_send}}', 'doanvvantrong@support.dtu.com')
+            .replace(/{{title}}/g, 'Password Reset')
+            .replace(/{{introduce}}/g, 'Reset Your Password')
+            .replace(/{{user_receive}}/g, email)
+            .replace(/{{description}}/g, 'Please click the button below to reset your password.')
+            .replace(/{{link}}/g, resetLink)
+            .replace(/{{user_send}}/g, 'doanvvantrong@support.dtu.com')
 
         await this.transporter.sendMail({
             from: envConfig.EMAIL_FROM,
