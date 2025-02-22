@@ -19,7 +19,23 @@ export class CoursesService {
                     skip,
                     take: limit,
                     include: {
-                        instructor: true,
+                        instructor: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                email: true,
+                                roleId: true,
+                                verify: true,
+                                status_account: true,
+                                dateOfBirth: true,
+                                avatarUrl: true,
+                                bio: true,
+                                gender: true,
+                                createdAt: true,
+                                updatedAt: true
+                            }
+                        },
                         enrollments: true,
                         category: true,
                         lessons: true,
@@ -51,10 +67,32 @@ export class CoursesService {
 
     async getCourseById(id: number) {
         try {
+            const categoryName = await this.prismaService.category.findUnique({
+                where: { id },
+                select: {
+                    name: true
+                }
+            });
             const course = await this.prismaService.course.findUnique({
                 where: { id },
                 include: {
-                    instructor: true,
+                    instructor: {
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                            email: true,
+                            roleId: true,
+                            verify: true,
+                            status_account: true,
+                            dateOfBirth: true,
+                            avatarUrl: true,
+                            bio: true,
+                            gender: true,
+                            createdAt: true,
+                            updatedAt: true
+                        }
+                    },
                     enrollments: true,
                     category: true,
                     lessons: {
@@ -101,7 +139,23 @@ export class CoursesService {
                     isPublished: data.isPublished ?? false
                 },
                 include: {
-                    instructor: true,
+                    instructor: {
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                            email: true,
+                            roleId: true,
+                            verify: true,
+                            status_account: true,
+                            dateOfBirth: true,
+                            avatarUrl: true,
+                            bio: true,
+                            gender: true,
+                            createdAt: true,
+                            updatedAt: true
+                        }
+                    },
                     category: true
                 }
             });
@@ -132,7 +186,23 @@ export class CoursesService {
                 where: { id },
                 data,
                 include: {
-                    instructor: true
+                    instructor: {
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                            email: true,
+                            roleId: true,
+                            verify: true,
+                            status_account: true,
+                            dateOfBirth: true,
+                            avatarUrl: true,
+                            bio: true,
+                            gender: true,
+                            createdAt: true,
+                            updatedAt: true
+                        }
+                    },
                 }
             });
         } catch (error) {

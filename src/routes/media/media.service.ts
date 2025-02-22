@@ -4,8 +4,8 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import ffmpeg from 'fluent-ffmpeg';
 import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_DIR, UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_TEMP_DIR, initFolder } from '../../shared/constant/upload.constant';
-import ffmpegStatic from 'ffmpeg-static'
 import envConfig from 'src/shared/config';
+
 export interface VideoStatus {
     id: string;
     status: 'processing' | 'completed' | 'failed';
@@ -18,16 +18,7 @@ export class MediaService {
 
     constructor() {
         initFolder([UPLOAD_IMAGE_DIR, UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_DIR, UPLOAD_VIDEO_TEMP_DIR]);
-        // Configure FFmpeg path
-        try {
-            if (!ffmpegStatic) {
-                throw new Error('ffmpeg-static package not found');
-            }
-            ffmpeg.setFfmpegPath(ffmpegStatic);
-        } catch (error) {
-            console.error('Error configuring FFmpeg:', error);
-            throw new Error('FFmpeg configuration failed. Please ensure ffmpeg-static is installed: npm install ffmpeg-static');
-        }
+        ffmpeg.setFfmpegPath('ffmpeg');
     }
 
     async uploadImage(file: Express.Multer.File) {
@@ -40,7 +31,7 @@ export class MediaService {
 
             return {
                 fileName,
-                url: `${envConfig.SERVER_URL}/static/image/${fileName}`,
+                url: `http://localhost:4000/static/image/${fileName}`,
                 mimetype: file.mimetype,
                 size: file.size
             };
@@ -59,7 +50,7 @@ export class MediaService {
 
             return {
                 fileName,
-                url: `${envConfig.SERVER_URL}/static/video-stream/${fileName}`,
+                url: `http://localhost:4000/static/video-stream/${fileName}`,
                 mimetype: file.mimetype,
                 size: file.size
             };

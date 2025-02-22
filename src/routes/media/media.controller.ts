@@ -1,10 +1,12 @@
-import { Controller, Post, Get, UseInterceptors, UploadedFile, Param, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, UseInterceptors, UploadedFile, Param, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { extname } from 'path';
 import { MediaService } from './media.service';
+import { VerifiedGuard } from 'src/shared/guards/verified.guard';
+import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 
 @Controller('media')
+@UseGuards(AccessTokenGuard, VerifiedGuard)
 export class MediaController {
     constructor(private readonly mediaService: MediaService) { }
 

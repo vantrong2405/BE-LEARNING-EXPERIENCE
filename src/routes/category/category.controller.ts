@@ -1,7 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ParseIntPipe, DefaultValuePipe, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ParseIntPipe, DefaultValuePipe, BadRequestException, UseGuards } from '@nestjs/common';
 import { CategoryService } from './category.service';
+import { VerifiedGuard } from 'src/shared/guards/verified.guard';
+import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 
 @Controller('category')
+@UseGuards(AccessTokenGuard, VerifiedGuard)
 export class CategoryController {
     constructor(
         private readonly categoryService: CategoryService
