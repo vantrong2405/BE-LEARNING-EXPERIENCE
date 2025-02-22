@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDTO, LoginBodyDTO, LogoutBodyDTO, RefreshTokenBodyDTO, RegisterBodyDTO, ResetPasswordDTO, VerifyEmailDTO } from './auth.dto';
 import { Response } from 'express'
@@ -99,9 +99,8 @@ export class AuthController {
 
     @Get('/profile/:id')
     @UseGuards(AccessTokenGuard)
-    async getProfile(@Req() req) {
-        const userId = req[REQUEST_USER_KEY].userId;
-        return await this.authService.getProfile(userId);
+    async getProfile(@Param('id') userId: number) {
+        return await this.authService.getProfileUserDiff(userId);
     }
 
     @Post('/change-password')

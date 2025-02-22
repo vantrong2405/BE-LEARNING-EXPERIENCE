@@ -451,6 +451,45 @@ export class AuthService {
                     username: true,
                     gender: true,
                     dateOfBirth: true,
+                    bio: true,
+                    avatarUrl: true,
+                    courses: true,
+                    reviews: true,
+                    roleId: true,
+                    verify: true,
+                    createdAt: true,
+                    updatedAt: true
+                }
+            });
+
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            return user;
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to get user profile');
+        }
+    }
+
+    async getProfileUserDiff(userId: number) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    gender: true,
+                    dateOfBirth: true,
+                    bio: true,
+                    avatarUrl: true,
+                    courses: true,
+                    reviews: true,
                     roleId: true,
                     verify: true,
                     createdAt: true,
@@ -525,6 +564,10 @@ export class AuthService {
                     username: true,
                     gender: true,
                     dateOfBirth: true,
+                    bio: true,
+                    avatarUrl: true,
+                    courses: true,
+                    reviews: true,
                     roleId: true,
                     verify: true,
                     createdAt: true,
