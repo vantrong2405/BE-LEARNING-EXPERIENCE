@@ -10,6 +10,7 @@ import { Prisma } from '@prisma/client';
 import axios from 'axios';
 import envConfig from 'src/shared/config';
 import { verify } from 'crypto';
+import { ChangePasswordDTO, UpdateProfileDTO } from './user.dto';
 
 @Injectable()
 export class AuthService {
@@ -436,6 +437,107 @@ export class AuthService {
                 throw new BadRequestException(`Database cleanup failed: ${error.message}`);
             }
             throw new BadRequestException('Failed to clear database. Please try again.');
+        }
+    }
+
+    async getProfile(userId: number) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    gender: true,
+                    dateOfBirth: true,
+                    roleId: true,
+                    verify: true,
+                    createdAt: true,
+                    updatedAt: true
+                }
+            });
+
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            return user;
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to get user profile');
+        }
+    }
+
+    async changePassword(userId: number, body: ChangePasswordDTO) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId }
+            });
+
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            const isPasswordMatch = await this.haShingService.compare(body.current_password, user.password);
+            if (!isPasswordMatch) {
+                throw new BadRequestException('Current password is incorrect');
+            }
+
+            const hashedPassword = await this.haShingService.hash(body.new_password);
+            await this.prismaService.user.update({
+                where: { id: userId },
+                data: { password: hashedPassword }
+            });
+
+            return { message: 'Password changed successfully' };
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to change password');
+        }
+    }
+
+    async updateProfile(userId: number, body: UpdateProfileDTO) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId }
+            });
+
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            const updatedUser = await this.prismaService.user.update({
+                where: { id: userId },
+                data: {
+                    name: body.name,
+                    gender: body.gender,
+                    dateOfBirth: body.dateOfBirth
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    gender: true,
+                    dateOfBirth: true,
+                    roleId: true,
+                    verify: true,
+                    createdAt: true,
+                    updatedAt: true
+                }
+            });
+
+            return updatedUser;
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to update profile');
         }
     }
 }

@@ -1,8 +1,11 @@
-import { BadRequestException, Body, Controller, Get, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDTO, LoginBodyDTO, LogoutBodyDTO, RefreshTokenBodyDTO, RegisterBodyDTO, ResetPasswordDTO, VerifyEmailDTO } from './auth.dto';
 import { Response } from 'express'
 import { TokenService } from 'src/shared/services/token.service';
+import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
+import { ChangePasswordDTO, UpdateProfileDTO } from './user.dto';
+import { REQUEST_USER_KEY } from 'src/shared/constant/auth.constant';
 @Controller('auth')
 
 export class AuthController {
@@ -85,5 +88,33 @@ export class AuthController {
     @Post('/delete-db')
     async deleteDatabase() {
         return await this.authService.deleteDatabase();
+    }
+
+    @Get('/get-me')
+    @UseGuards(AccessTokenGuard)
+    async getMe(@Req() req) {
+        const userId = req[REQUEST_USER_KEY].userId;
+        return await this.authService.getProfile(userId);
+    }
+
+    @Get('/profile/:id')
+    @UseGuards(AccessTokenGuard)
+    async getProfile(@Req() req) {
+        const userId = req[REQUEST_USER_KEY].userId;
+        return await this.authService.getProfile(userId);
+    }
+
+    @Post('/change-password')
+    @UseGuards(AccessTokenGuard)
+    async changePassword(@Req() req, @Body() body: ChangePasswordDTO) {
+        const userId = req[REQUEST_USER_KEY].userId;
+        return await this.authService.changePassword(userId, body);
+    }
+
+    @Post('/update-me')
+    @UseGuards(AccessTokenGuard)
+    async updateMe(@Req() req, @Body() body: UpdateProfileDTO) {
+        const userId = req[REQUEST_USER_KEY].userId;
+        return await this.authService.updateProfile(userId, body);
     }
 }
