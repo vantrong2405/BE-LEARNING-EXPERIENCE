@@ -89,9 +89,15 @@ export class AuthService {
     }
 
     async generateTokens(payload: { userId: number }) {
+        const user = await this.prismaService.user.findUnique({
+            where: { id: payload.userId },
+            select: { roleId: true }
+        });
+
+        const tokenPayload = { userId: payload.userId, roleId: user.roleId };
         const [accessToken, refreshToken] = await Promise.all([
-            this.tokenService.signAccessToken(payload),
-            this.tokenService.signRefreshToken(payload)
+            this.tokenService.signAccessToken(tokenPayload),
+            this.tokenService.signRefreshToken(tokenPayload)
         ])
 
         // khi giải mã thì nó sẽ trả về 1 object data người khi đăng ký lúc đầu là userId + thêm 2 field tự jwt tự tạo là exp và iat

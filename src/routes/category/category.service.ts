@@ -17,7 +17,36 @@ export class CategoryService {
                     skip,
                     take: limit,
                     include: {
-                        courses: true
+                        courses: {
+                            select: {
+                                id: true,
+                                title: true,
+                                description: true,
+                                price: true,
+                                thumbnailUrl: true,
+                                bannerUrl: true,
+                                isPublished: true,
+                                createdAt: true,
+                                updatedAt: true,
+                                instructor: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        username: true,
+                                        email: true,
+                                        roleId: true,
+                                        verify: true,
+                                        status_account: true,
+                                        dateOfBirth: true,
+                                        avatarUrl: true,
+                                        bio: true,
+                                        gender: true,
+                                        createdAt: true,
+                                        updatedAt: true
+                                    }
+                                }
+                            }
+                        }
                     }
                 })
             ]);
@@ -43,7 +72,36 @@ export class CategoryService {
             const category = await this.prismaService.category.findUnique({
                 where: { id },
                 include: {
-                    courses: true
+                    courses: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                            price: true,
+                            thumbnailUrl: true,
+                            bannerUrl: true,
+                            isPublished: true,
+                            createdAt: true,
+                            updatedAt: true,
+                            instructor: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    username: true,
+                                    email: true,
+                                    roleId: true,
+                                    verify: true,
+                                    status_account: true,
+                                    dateOfBirth: true,
+                                    avatarUrl: true,
+                                    bio: true,
+                                    gender: true,
+                                    createdAt: true,
+                                    updatedAt: true
+                                }
+                            }
+                        }
+                    }
                 }
             });
 
