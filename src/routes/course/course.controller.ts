@@ -1,8 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ParseIntPipe, DefaultValuePipe, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ParseIntPipe, DefaultValuePipe, BadRequestException, UseGuards } from '@nestjs/common';
 import { CoursesService } from './course.service';
 import { CreateCourseDTO, UpdateCourseDTO } from './course.dto';
+import { VerifiedGuard } from 'src/shared/guards/verified.guard';
+import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 
 @Controller('course')
+@UseGuards(AccessTokenGuard, VerifiedGuard)
 export class CoursesController {
     constructor(
         private readonly coursesService: CoursesService
