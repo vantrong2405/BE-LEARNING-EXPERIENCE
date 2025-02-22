@@ -10,6 +10,7 @@ export interface VideoStatus {
     id: string;
     status: 'processing' | 'completed' | 'failed';
     error?: string;
+    url?: string;
 }
 
 @Injectable()
@@ -61,11 +62,19 @@ export class MediaService {
 
     async uploadVideoHLS(file: Express.Multer.File) {
         try {
+            // Validate file format
+            const allowedMimeTypes = ['video/mp4', 'video/webm'];
+            if (!allowedMimeTypes.includes(file.mimetype)) {
+                throw new HttpException('Invalid file type. Only MP4 and WebM are allowed', HttpStatus.BAD_REQUEST);
+            }
+
+            // Sanitize filename
+            const originalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
             const videoId = uuidv4();
             const outputDir = path.join(UPLOAD_VIDEO_DIR, videoId);
             fs.mkdirSync(outputDir, { recursive: true });
 
-            const inputPath = path.join(UPLOAD_VIDEO_TEMP_DIR, `input_${videoId}${path.extname(file.originalname)}`);
+            const inputPath = path.join(UPLOAD_VIDEO_TEMP_DIR, `input_${videoId}${path.extname(originalName)}`);
             await fs.promises.writeFile(inputPath, file.buffer);
 
             this.videoStatuses.set(videoId, {
@@ -81,7 +90,10 @@ export class MediaService {
                 status: 'processing'
             };
         } catch (error) {
-            throw new HttpException('Error processing video', HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new HttpException(
+                error instanceof HttpException ? error.message : 'Error processing video',
+                error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
@@ -106,7 +118,7 @@ export class MediaService {
                     '-hls_list_size 0',    // Keep all segments in the playlist
                     '-f hls',              // Force HLS output format
                     '-hls_segment_filename',
-                    path.join(outputDir, 'segment%03d.ts'),
+                    path.join(outputDir, 'segment%03d.m3u8-ts'),
                     '-codec:v h264',       // Video codec
                     '-codec:a aac',        // Audio codec
                     '-ar 48000',           // Audio sample rate
@@ -127,7 +139,8 @@ export class MediaService {
                     console.log('FFmpeg conversion completed successfully');
                     this.videoStatuses.set(videoId, {
                         id: videoId,
-                        status: 'completed'
+                        status: 'completed',
+                        url: `http://localhost:4000/static/video-hls/${videoId}/master.m3u8`
                     });
                     // Clean up input file
                     try {
@@ -171,6 +184,11 @@ export class MediaService {
         const status = this.videoStatuses.get(id);
         if (!status) {
             throw new HttpException('Video not found', HttpStatus.NOT_FOUND);
+        }
+        console.log("🚀 ~ MediaService ~ getVideoStatus ~ status:", status.status)
+        if (status.status === 'completed' && !status.url) {
+            status.url = `http://localhost:4000/static/video-hls/${id}/master.m3u8`;
+            this.videoStatuses.set(id, status);
         }
         return status;
     }
