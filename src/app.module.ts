@@ -9,6 +9,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { APP_FILTER } from '@nestjs/core';
 import { StaticModule } from './routes/static/static.module';
+import { LessonModule } from './routes/lesson/lesson.module';
 @Module({
   imports: [SharedModule, AuthModule, CoursesModule, CategoryModule, MediaModule,
     ServeStaticModule.forRoot({
@@ -19,7 +20,8 @@ import { StaticModule } from './routes/static/static.module';
         fallthrough: true
       }
     }),
-    StaticModule,],
+    StaticModule,
+    LessonModule,],
   controllers: [],
   providers: [
     {
