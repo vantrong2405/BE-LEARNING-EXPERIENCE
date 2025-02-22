@@ -19,5 +19,5 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
-  "exclude": ["uploads/**/*"]
+  "exclude": ["uploads", "uploads/**/*", "uploads/videos", "uploads/videos/**/*", "**/*.ts.map", "dist"]
 }
