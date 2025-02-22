@@ -7,7 +7,7 @@ import { TokenPayload } from '../types/jwt.type';
 export class TokenService {
     constructor(private readonly jwtService: JwtService) { }
 
-    signAccessToken(payload: { userId: number, roleId?: number }) {
+    signAccessToken(payload: { userId: number, roleId?: number, verify?: number }) {
         return this.jwtService.sign(payload, {
             secret: envConfig.ACCESS_TOKEN_SECRET,
             expiresIn: envConfig.ACCESS_TOKEN_EXPIRES_IN,

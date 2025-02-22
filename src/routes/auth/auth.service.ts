@@ -9,6 +9,7 @@ import { generateUsername } from 'src/utils/helpers';
 import { Prisma } from '@prisma/client';
 import axios from 'axios';
 import envConfig from 'src/shared/config';
+import { verify } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -91,10 +92,10 @@ export class AuthService {
     async generateTokens(payload: { userId: number }) {
         const user = await this.prismaService.user.findUnique({
             where: { id: payload.userId },
-            select: { roleId: true }
+            select: { roleId: true, verify: true }
         });
 
-        const tokenPayload = { userId: payload.userId, roleId: user.roleId };
+        const tokenPayload = { userId: payload.userId, roleId: user.roleId, verify: user.verify };
         const [accessToken, refreshToken] = await Promise.all([
             this.tokenService.signAccessToken(tokenPayload),
             this.tokenService.signRefreshToken(tokenPayload)
