@@ -5,7 +5,6 @@ import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 import { CreateLessonDTO, UpdateLessonDTO } from './lesson.dto';
 
 @Controller('lesson')
-@UseGuards(AccessTokenGuard, VerifiedGuard)
 export class LessonController {
     constructor(
         private readonly lessonService: LessonService
@@ -26,16 +25,19 @@ export class LessonController {
         return await this.lessonService.getLessonsByCourseId(Number(courseId), { page, limit });
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Post()
     async createLesson(@Body() body: CreateLessonDTO) {
         return await this.lessonService.createLesson(body);
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Patch('/:id')
     async updateLesson(@Param('id') id: string, @Body() body: UpdateLessonDTO) {
         return await this.lessonService.updateLesson(Number(id), body);
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Delete('/:id')
     async deleteLesson(@Param('id') id: string) {
         return await this.lessonService.deleteLesson(Number(id));

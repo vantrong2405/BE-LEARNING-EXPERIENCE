@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/shared/services/prisma.service';
-import { TokenService } from 'src/shared/services/token.service';
 
 @Injectable()
 export class CoursesService {
     constructor(
-        private readonly tokenService: TokenService,
         private readonly prismaService: PrismaService
     ) { }
 
@@ -63,12 +61,6 @@ export class CoursesService {
 
     async getCourseById(id: number) {
         try {
-            const categoryName = await this.prismaService.category.findUnique({
-                where: { id },
-                select: {
-                    name: true
-                }
-            });
             const course = await this.prismaService.course.findUnique({
                 where: { id },
                 include: {
