@@ -38,9 +38,6 @@ export class CoursesService {
                         },
                         enrollments: true,
                         category: true,
-                        lessons: true,
-                        reviews: true,
-                        payments: true,
                     },
                     orderBy: {
                         createdAt: 'desc'
