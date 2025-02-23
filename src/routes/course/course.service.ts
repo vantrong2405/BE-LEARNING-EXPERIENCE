@@ -41,7 +41,6 @@ export class CoursesService {
                         lessons: true,
                         reviews: true,
                         payments: true,
-                        uploads: true
                     },
                     orderBy: {
                         createdAt: 'desc'
@@ -102,7 +101,6 @@ export class CoursesService {
                     },
                     reviews: true,
                     payments: true,
-                    uploads: true
                 }
             });
 

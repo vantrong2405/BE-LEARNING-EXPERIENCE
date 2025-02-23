@@ -43,10 +43,7 @@ export class MediaService {
 
             return {
                 id: upload.id,
-                fileName,
-                url: fileUrl,
-                mimetype: file.mimetype,
-                size: file.size
+                url: fileUrl
             };
         } catch (error) {
             throw new HttpException('Error uploading image', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -72,10 +69,7 @@ export class MediaService {
 
             return {
                 id: upload.id,
-                fileName,
-                url: fileUrl,
-                mimetype: file.mimetype,
-                size: file.size
+                url: fileUrl
             };
         } catch (error) {
             throw new HttpException('Error uploading video', HttpStatus.INTERNAL_SERVER_ERROR);
