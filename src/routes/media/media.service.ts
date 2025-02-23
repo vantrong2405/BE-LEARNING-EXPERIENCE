@@ -4,7 +4,7 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import ffmpeg from 'fluent-ffmpeg';
 import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_DIR, UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_TEMP_DIR, initFolder } from '../../shared/constant/upload.constant';
-import envConfig from 'src/shared/config';
+import { PrismaService } from 'src/shared/services/prisma.service';
 
 export interface VideoStatus {
     id: string;
@@ -17,7 +17,9 @@ export interface VideoStatus {
 export class MediaService {
     private readonly videoStatuses: Map<string, VideoStatus> = new Map();
 
-    constructor() {
+    constructor(
+        private prisma: PrismaService
+    ) {
         initFolder([UPLOAD_IMAGE_DIR, UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_DIR, UPLOAD_VIDEO_TEMP_DIR]);
         ffmpeg.setFfmpegPath('ffmpeg');
     }
@@ -30,9 +32,20 @@ export class MediaService {
 
             await fs.promises.writeFile(filePath, file.buffer);
 
+            const fileUrl = `http://localhost:4000/static/image/${fileName}`;
+
+            const upload = await this.prisma.upload.create({
+                data: {
+                    courseId: 1, // TODO: Get courseId from request
+                    uploadType: 'Image',
+                    fileUrl
+                }
+            });
+
             return {
+                id: upload.id,
                 fileName,
-                url: `http://localhost:4000/static/image/${fileName}`,
+                url: fileUrl,
                 mimetype: file.mimetype,
                 size: file.size
             };
@@ -49,9 +62,20 @@ export class MediaService {
 
             await fs.promises.writeFile(filePath, file.buffer);
 
+            const fileUrl = `http://localhost:4000/static/video-stream/${fileName}`;
+
+            const upload = await this.prisma.upload.create({
+                data: {
+                    courseId: 1, // TODO: Get courseId from request
+                    uploadType: 'Video',
+                    fileUrl
+                }
+            });
+
             return {
+                id: upload.id,
                 fileName,
-                url: `http://localhost:4000/static/video-stream/${fileName}`,
+                url: fileUrl,
                 mimetype: file.mimetype,
                 size: file.size
             };
@@ -85,8 +109,19 @@ export class MediaService {
             // Start HLS conversion process
             this.convertToHLS(inputPath, outputDir, videoId);
 
+            const fileUrl = `http://localhost:4000/static/video-hls/${videoId}/master.m3u8`;
+
+            const upload = await this.prisma.upload.create({
+                data: {
+                    courseId: 1, // TODO: Get courseId from request
+                    uploadType: 'Video',
+                    fileUrl
+                }
+            });
+
             return {
                 id: videoId,
+                dbId: upload.id,
                 status: 'processing'
             };
         } catch (error) {
