@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/shared/services/prisma.service';
-import { CreateLessonDTO } from './lesson.dto';
+import { CreateLessonDTO, UpdateLessonDTO } from './lesson.dto';
 
 @Injectable()
 export class LessonService {
@@ -65,12 +65,7 @@ export class LessonService {
         }
     }
 
-    async updateLesson(id: number, data: {
-        title?: string;
-        description?: string;
-        order?: number;
-        isPublished?: boolean;
-    }) {
+    async updateLesson(id: number, data: UpdateLessonDTO) {
         try {
             const lesson = await this.prismaService.lesson.findUnique({
                 where: { id }
