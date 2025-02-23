@@ -36,7 +36,6 @@ export class MediaService {
 
             const upload = await this.prisma.upload.create({
                 data: {
-                    courseId: 1, // TODO: Get courseId from request
                     uploadType: 'Image',
                     fileUrl
                 }
@@ -66,7 +65,6 @@ export class MediaService {
 
             const upload = await this.prisma.upload.create({
                 data: {
-                    courseId: 1, // TODO: Get courseId from request
                     uploadType: 'Video',
                     fileUrl
                 }
@@ -113,7 +111,6 @@ export class MediaService {
 
             const upload = await this.prisma.upload.create({
                 data: {
-                    courseId: 1, // TODO: Get courseId from request
                     uploadType: 'Video',
                     fileUrl
                 }
