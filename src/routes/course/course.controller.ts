@@ -29,19 +29,19 @@ export class CoursesController {
         return await this.coursesService.getCourseById(Number(id))
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
+    // @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Post()
     async createCourse(@Body() body: CreateCourseDTO) {
         return await this.coursesService.createCourse(body)
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
+    // @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Patch('/:id')
     async updateCourse(@Param('id') id: string, @Body() body: UpdateCourseDTO) {
         return await this.coursesService.updateCourse(Number(id), body)
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
+    // @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Delete('/:id')
     async deleteCourse(@Param('id') id: string) {
         return await this.coursesService.deleteCourse(Number(id))
