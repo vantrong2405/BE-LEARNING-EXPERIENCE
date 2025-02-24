@@ -39,6 +39,7 @@ export class MediaController {
         }
     }))
     async uploadVideo(@UploadedFile() file: Express.Multer.File) {
+        const courseId = 1;
         if (!file) {
             throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
         }

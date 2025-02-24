@@ -36,8 +36,30 @@ CREATE TABLE "Course" (
     "isPublished" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "rating" DOUBLE PRECISION DEFAULT 0.0,
+    "totalReviews" INTEGER DEFAULT 0,
+    "moneyBackGuarantee" BOOLEAN NOT NULL DEFAULT true,
+    "videoHours" INTEGER DEFAULT 0,
+    "articlesCount" INTEGER DEFAULT 0,
+    "downloadableResources" INTEGER DEFAULT 0,
+    "lifetimeAccess" BOOLEAN NOT NULL DEFAULT true,
+    "certificate" BOOLEAN NOT NULL DEFAULT true,
+    "courseOverview" TEXT,
+    "learningObjectives" TEXT,
+    "courseFeatures" TEXT,
+    "requirements" TEXT,
+    "levelId" INTEGER,
 
     CONSTRAINT "Course_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Level" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+
+    CONSTRAINT "Level_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -48,6 +70,7 @@ CREATE TABLE "Lesson" (
     "content" TEXT,
     "order" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Lesson_pkey" PRIMARY KEY ("id")
 );
@@ -58,6 +81,8 @@ CREATE TABLE "Video" (
     "lessonId" INTEGER NOT NULL,
     "videoUrl" TEXT NOT NULL,
     "duration" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Video_pkey" PRIMARY KEY ("id")
 );
@@ -67,7 +92,8 @@ CREATE TABLE "Enrollment" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
     "courseId" INTEGER NOT NULL,
-    "enrolledAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Enrollment_pkey" PRIMARY KEY ("id")
 );
@@ -81,6 +107,7 @@ CREATE TABLE "Payment" (
     "status" INTEGER NOT NULL,
     "transactionId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
 );
@@ -89,6 +116,8 @@ CREATE TABLE "Payment" (
 CREATE TABLE "Category" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
@@ -101,6 +130,7 @@ CREATE TABLE "Review" (
     "rating" INTEGER NOT NULL,
     "comment" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Review_pkey" PRIMARY KEY ("id")
 );
@@ -110,6 +140,8 @@ CREATE TABLE "Role" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Role_pkey" PRIMARY KEY ("id")
 );
@@ -119,6 +151,8 @@ CREATE TABLE "RolePermission" (
     "id" SERIAL NOT NULL,
     "roleId" INTEGER NOT NULL,
     "permId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "RolePermission_pkey" PRIMARY KEY ("id")
 );
@@ -130,6 +164,7 @@ CREATE TABLE "RefreshToken" (
     "token" TEXT NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "RefreshToken_pkey" PRIMARY KEY ("id")
 );
@@ -137,10 +172,10 @@ CREATE TABLE "RefreshToken" (
 -- CreateTable
 CREATE TABLE "Upload" (
     "id" SERIAL NOT NULL,
-    "courseId" INTEGER NOT NULL,
     "uploadType" "UploadType" NOT NULL,
     "fileUrl" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Upload_pkey" PRIMARY KEY ("id")
 );
@@ -153,8 +188,20 @@ CREATE TABLE "AdminAction" (
     "action" TEXT NOT NULL,
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "AdminAction_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Faq" (
+    "id" SERIAL NOT NULL,
+    "courseId" INTEGER NOT NULL,
+    "question" TEXT NOT NULL,
+    "answer" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Faq_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -162,6 +209,9 @@ CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Level_name_key" ON "Level"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Payment_transactionId_key" ON "Payment"("transactionId");
@@ -180,6 +230,9 @@ ALTER TABLE "Course" ADD CONSTRAINT "Course_instructorId_fkey" FOREIGN KEY ("ins
 
 -- AddForeignKey
 ALTER TABLE "Course" ADD CONSTRAINT "Course_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Course" ADD CONSTRAINT "Course_levelId_fkey" FOREIGN KEY ("levelId") REFERENCES "Level"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -212,10 +265,10 @@ ALTER TABLE "RolePermission" ADD CONSTRAINT "RolePermission_roleId_fkey" FOREIGN
 ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Upload" ADD CONSTRAINT "Upload_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "AdminAction" ADD CONSTRAINT "AdminAction_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AdminAction" ADD CONSTRAINT "AdminAction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Faq" ADD CONSTRAINT "Faq_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

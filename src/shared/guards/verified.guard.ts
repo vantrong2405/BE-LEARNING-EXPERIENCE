@@ -11,7 +11,7 @@ export class VerifiedGuard implements CanActivate {
             throw new UnauthorizedException('User not found');
         }
 
-        if (user.verify !== 1) {
+        if (!user.verify) {
             throw new UnauthorizedException('User not verified');
         }
 

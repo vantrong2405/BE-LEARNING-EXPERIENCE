@@ -9,6 +9,9 @@ import { generateUsername } from 'src/utils/helpers';
 import { Prisma } from '@prisma/client';
 import axios from 'axios';
 import envConfig from 'src/shared/config';
+import { verify } from 'crypto';
+import { ChangePasswordDTO, UpdateProfileDTO } from './user.dto';
+import { throwError } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -91,10 +94,10 @@ export class AuthService {
     async generateTokens(payload: { userId: number }) {
         const user = await this.prismaService.user.findUnique({
             where: { id: payload.userId },
-            select: { roleId: true }
+            select: { roleId: true, verify: true }
         });
 
-        const tokenPayload = { userId: payload.userId, roleId: user.roleId };
+        const tokenPayload = { userId: payload.userId, roleId: user.roleId, verify: user.verify };
         const [accessToken, refreshToken] = await Promise.all([
             this.tokenService.signAccessToken(tokenPayload),
             this.tokenService.signRefreshToken(tokenPayload)
@@ -165,93 +168,108 @@ export class AuthService {
     }
 
     async oauth(code: string) {
-        const { id_token, access_token } = await this.getOauthGoogleToken(code)
-        const userInfo = await this.getGoogleUserInfo(access_token, id_token)
-        if (!userInfo.email_verified) {
-            throw new ConflictException('Email already exists')
-        }
+        try {
+            const { id_token, access_token } = await this.getOauthGoogleToken(code);
+            const userInfo = await this.getGoogleUserInfo(access_token);
 
-        const user = await this.prismaService.user.findUnique({
-            where: {
-                email: userInfo.email as string
+            if (!userInfo.email_verified) {
+                throw new UnauthorizedException('Email not verified with Google');
             }
-        })
 
-        if (user) {
-            const [access_token, refresh_token] = await this.tokenService.signAccessAndRefreshToken(
-                { userId: user.id, verify: 1 }
-            )
-            const { iat, exp } = await this.tokenService.decodeRefreshToken(refresh_token)
-            await this.prismaService.refreshToken.update({
+            if (!userInfo.email) {
+                throw new BadRequestException('Email not provided by Google');
+            }
+
+            const user = await this.prismaService.user.findUnique({
                 where: {
-                    userId: user.id,
-                    expiresAt: new Date(exp * 1000),
-                    token: refresh_token,
-                    createdAt: new Date(iat * 1000)
-                },
-                data: {
-                    token: refresh_token
+                    email: userInfo.email as string
                 }
-            })
+            });
 
-            return {
-                access_token,
-                refresh_token,
-                newUser: 0,// chưa có user thì user = 0 
-                verify: user.verify
+            if (user) {
+                const [access_token, refresh_token] = await this.tokenService.signAccessAndRefreshToken(
+                    { userId: user.id, verify: 1 }
+                );
+                const { iat, exp } = await this.tokenService.decodeRefreshToken(refresh_token);
+                await this.prismaService.refreshToken.update({
+                    where: {
+                        userId: user.id,
+                        expiresAt: new Date(exp * 1000),
+                        token: refresh_token,
+                        createdAt: new Date(iat * 1000)
+                    },
+                    data: {
+                        token: refresh_token
+                    }
+                });
+
+                return {
+                    access_token,
+                    refresh_token,
+                    newUser: 0, // chưa có user thì newUser = 0 
+                    verify: user.verify
+                };
+            } else {
+                const passwordRandom = Math.random().toString(36).substring(2, 15);
+                const data = await this.register({
+                    name: userInfo.email,
+                    email: userInfo.email,
+                    password: passwordRandom,
+                    dateOfBirth: new Date(),
+                    confirmPassword: passwordRandom,
+                    roleId: 0
+                });
+                return { ...data, newUser: 1, verify: 1 };
             }
-        } else {
-            const passwordRandom = Math.random().toString(36).substring(2, 15)
-            const data = await this.register({
-                name: userInfo.email,
-                email: userInfo.email,
-                password: passwordRandom,
-                dateOfBirth: new Date(),
-                confirmPassword: passwordRandom,
-                roleId: 0
-            })
-            return { ...data, newUser: 1, verify: 1 }
+        } catch (error) {
+            throw error;
         }
-    }
+    } // Đóng ngoặc đầy đủ
+
 
     private async getOauthGoogleToken(code: string) {
-        const body = {
-            code,
-            client_id: envConfig.GOOGLE_CLIENT_ID,
-            client_secret: envConfig.GOOGLE_CLIENT_SECRET,
-            redirect_uri: envConfig.GOOGLE_REDIRECT_URI,
-            grant_type: 'authorization_code'
-        }
-
-        const { data } = await axios.post('https://oauth2.googleapis.com/token', body, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+        try {
+            const body = {
+                code,
+                client_id: envConfig.GOOGLE_CLIENT_ID,
+                client_secret: envConfig.GOOGLE_CLIENT_SECRET,
+                redirect_uri: envConfig.GOOGLE_REDIRECT_URI,
+                grant_type: 'authorization_code'
             }
-        })
-        return data as {
-            access_token: string,
-            id_token: string,
+
+            const { data } = await axios.post('https://oauth2.googleapis.com/token', body, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            return data as {
+                access_token: string,
+                id_token: string,
+            }
+        } catch (error) {
+            throwError(() => new UnauthorizedException('Failed to get Google OAuth token'));
         }
     }
 
-    private async getGoogleUserInfo(access_token: string, id_token: string) {
-        const { data } = await axios.get(
-            'https://www.googleapis.com/oauth2/v3/tokeninfo',
-            {
-                params: {
-                    access_token,
-                    alt: 'json'
-                },
-                headers: {
-                    Authorization: `Bearer ${id_token}`
+    private async getGoogleUserInfo(access_token: string) {
+        try {
+            const { data } = await axios.get(
+                'https://www.googleapis.com/oauth2/v3/userinfo',
+                {
+                    headers: {
+                        Authorization: `Bearer ${access_token}`
+                    }
                 }
+            )
+            return data as {
+                sub: string
+                email: string
+                email_verified: boolean
+                name: string
+                picture: string
             }
-        )
-        return data as {
-            user_id: string
-            email: string
-            email_verified: string
-            access_type: string
+        } catch (error) {
+            throw new UnauthorizedException('Failed to get Google user info');
         }
     }
 
@@ -435,6 +453,150 @@ export class AuthService {
                 throw new BadRequestException(`Database cleanup failed: ${error.message}`);
             }
             throw new BadRequestException('Failed to clear database. Please try again.');
+        }
+    }
+
+    async getProfile(userId: number) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    gender: true,
+                    dateOfBirth: true,
+                    bio: true,
+                    avatarUrl: true,
+                    courses: true,
+                    reviews: true,
+                    roleId: true,
+                    verify: true,
+                    createdAt: true,
+                    updatedAt: true
+                }
+            });
+
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            return user;
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to get user profile');
+        }
+    }
+
+    async getProfileUserDiff(userId: number) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    gender: true,
+                    dateOfBirth: true,
+                    bio: true,
+                    avatarUrl: true,
+                    courses: true,
+                    reviews: true,
+                    roleId: true,
+                    verify: true,
+                    createdAt: true,
+                    updatedAt: true
+                }
+            });
+
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            return user;
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to get user profile');
+        }
+    }
+
+    async changePassword(userId: number, body: ChangePasswordDTO) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId }
+            });
+
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            const isPasswordMatch = await this.haShingService.compare(body.current_password, user.password);
+            if (!isPasswordMatch) {
+                throw new BadRequestException('Current password is incorrect');
+            }
+
+            const hashedPassword = await this.haShingService.hash(body.new_password);
+            await this.prismaService.user.update({
+                where: { id: userId },
+                data: { password: hashedPassword }
+            });
+
+            return { message: 'Password changed successfully' };
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to change password');
+        }
+    }
+
+    async updateProfile(userId: number, body: UpdateProfileDTO) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId }
+            });
+
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            const updatedUser = await this.prismaService.user.update({
+                where: { id: userId },
+                data: {
+                    name: body.name,
+                    gender: body.gender,
+                    dateOfBirth: body.dateOfBirth
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    gender: true,
+                    dateOfBirth: true,
+                    bio: true,
+                    avatarUrl: true,
+                    courses: true,
+                    reviews: true,
+                    roleId: true,
+                    verify: true,
+                    createdAt: true,
+                    updatedAt: true
+                }
+            });
+
+            return updatedUser;
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException('Failed to update profile');
         }
     }
 }
