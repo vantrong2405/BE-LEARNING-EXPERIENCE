@@ -59,6 +59,145 @@ export class CoursesService {
         }
     }
 
+    async searchCourses(query: string, { page, limit }: { page: number; limit: number }) {
+        try {
+            const skip = (page - 1) * limit;
+
+            const [total, courses] = await Promise.all([
+                this.prismaService.course.count({
+                    where: {
+                        OR: [
+                            { title: { contains: query, mode: 'insensitive' } },
+                            { description: { contains: query, mode: 'insensitive' } },
+                            { instructor: { name: { contains: query, mode: 'insensitive' } } }
+                        ]
+                    }
+                }),
+                this.prismaService.course.findMany({
+                    where: {
+                        OR: [
+                            { title: { contains: query, mode: 'insensitive' } },
+                            { description: { contains: query, mode: 'insensitive' } },
+                            { instructor: { name: { contains: query, mode: 'insensitive' } } }
+                        ]
+                    },
+                    skip,
+                    take: limit,
+                    include: {
+                        instructor: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                email: true,
+                                roleId: true,
+                                verify: true,
+                                status_account: true,
+                                dateOfBirth: true,
+                                avatarUrl: true,
+                                bio: true,
+                                gender: true,
+                                createdAt: true,
+                                updatedAt: true
+                            }
+                        },
+                        enrollments: true,
+                        category: true,
+                    },
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
+                })
+            ]);
+
+            const totalPages = Math.ceil(total / limit);
+
+            return {
+                data: courses,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    totalPages
+                }
+            };
+        } catch (error) {
+            throw new Error('Failed to search courses');
+        }
+    }
+
+    async filterCourses(
+        filters: {
+            categoryId?: number;
+            priceRange?: [number, number];
+        },
+        { page, limit }: { page: number; limit: number }
+    ) {
+        try {
+            const skip = (page - 1) * limit;
+            const where: any = {};
+
+            if (filters.categoryId) {
+                where.categoryId = filters.categoryId;
+            }
+
+            if (filters.priceRange) {
+                where.price = {
+                    gte: filters.priceRange[0],
+                    lte: filters.priceRange[1]
+                };
+            }
+
+            const [total, courses] = await Promise.all([
+                this.prismaService.course.count({ where }),
+                this.prismaService.course.findMany({
+                    where,
+                    skip,
+                    take: limit,
+                    include: {
+                        instructor: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                email: true,
+                                roleId: true,
+                                verify: true,
+                                status_account: true,
+                                dateOfBirth: true,
+                                avatarUrl: true,
+                                bio: true,
+                                gender: true,
+                                createdAt: true,
+                                updatedAt: true
+                            }
+                        },
+                        enrollments: true,
+                        category: true,
+                        reviews: true
+                    },
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
+                })
+            ]);
+
+            const totalPages = Math.ceil(total / limit);
+
+            return {
+                data: courses,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    totalPages
+                }
+            };
+        } catch (error) {
+            throw new Error('Failed to filter courses');
+        }
+    }
+
     async getCourseById(id: number) {
         try {
             const course = await this.prismaService.course.findUnique({
