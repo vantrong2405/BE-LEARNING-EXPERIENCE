@@ -54,11 +54,35 @@ model Course {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  rating                Float?  @default(0.0)
+  totalReviews          Int?    @default(0)
+  moneyBackGuarantee    Boolean @default(true)
+  videoHours            Int?    @default(0)
+  articlesCount         Int?    @default(0)
+  downloadableResources Int?    @default(0)
+  lifetimeAccess        Boolean @default(true)
+  certificate           Boolean @default(true)
+
+  courseOverview     String?
+  learningObjectives String?
+  courseFeatures     String?
+  requirements       String?
+
+  level   Level? @relation(fields: [levelId], references: [id])
+  levelId Int?
+
   lessons     Lesson[]
   enrollments Enrollment[]
   reviews     Review[]
   payments    Payment[]
-  uploads     Upload[]
+  faqs        Faq[]
+}
+
+model Level {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  courses     Course[]
 }
 
 model Lesson {
@@ -110,7 +134,7 @@ model Payment {
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
-  courses   Course[]       
+  courses   Course[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -158,8 +182,6 @@ model RefreshToken {
 
 model Upload {
   id         Int        @id @default(autoincrement())
-  course     Course     @relation(fields: [courseId], references: [id])
-  courseId   Int
   uploadType UploadType
   fileUrl    String
   createdAt  DateTime   @default(now())
@@ -176,4 +198,13 @@ model AdminAction {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Faq {
+  id        Int      @id @default(autoincrement())
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  Int
+  question  String
+  answer    String
+  createdAt DateTime @default(now())
 }

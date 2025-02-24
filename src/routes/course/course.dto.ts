@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsNumber, IsUrl, Min, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsUrl, Min, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateCourseDTO {
     @IsNotEmpty()
@@ -29,6 +29,57 @@ export class CreateCourseDTO {
     @IsNotEmpty()
     @IsNumber()
     categoryId: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    levelId: number;
+
+    @IsOptional()
+    @IsBoolean()
+    isPublished?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    moneyBackGuarantee?: boolean;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    videoHours?: number;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    articlesCount?: number;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    downloadableResources?: number;
+
+    @IsOptional()
+    @IsBoolean()
+    lifetimeAccess?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    certificate?: boolean;
+
+    @IsOptional()
+    @IsString()
+    courseOverview?: string;
+
+    @IsOptional()
+    @IsString()
+    learningObjectives?: string;
+
+    @IsOptional()
+    @IsString()
+    courseFeatures?: string;
+
+    @IsOptional()
+    @IsString()
+    requirements?: string;
 }
 
 export class UpdateCourseDTO {
@@ -55,9 +106,56 @@ export class UpdateCourseDTO {
 
     @IsOptional()
     @IsNumber()
-    instructorId?: number;
+    categoryId?: number;
 
     @IsOptional()
     @IsNumber()
-    categoryId?: number;
+    levelId?: number;
+
+    @IsOptional()
+    @IsBoolean()
+    isPublished?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    moneyBackGuarantee?: boolean;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    videoHours?: number;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    articlesCount?: number;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    downloadableResources?: number;
+
+    @IsOptional()
+    @IsBoolean()
+    lifetimeAccess?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    certificate?: boolean;
+
+    @IsOptional()
+    @IsString()
+    courseOverview?: string;
+
+    @IsOptional()
+    @IsString()
+    learningObjectives?: string;
+
+    @IsOptional()
+    @IsString()
+    courseFeatures?: string;
+
+    @IsOptional()
+    @IsString()
+    requirements?: string;
 }
