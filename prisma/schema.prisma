@@ -54,10 +54,25 @@ model Course {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  rating                Float?  @default(0.0)
+  totalReviews          Int?    @default(0)
+  moneyBackGuarantee    Boolean @default(true)
+  videoHours            Int?    @default(0)
+  articlesCount         Int?    @default(0)
+  downloadableResources Int?    @default(0)
+  lifetimeAccess        Boolean @default(true)
+  certificate           Boolean @default(true)
+
+  courseOverview     String?
+  learningObjectives String?
+  courseFeatures     String?
+  requirements       String?
+
   lessons     Lesson[]
   enrollments Enrollment[]
   reviews     Review[]
   payments    Payment[]
+  faqs        Faq[]
 }
 
 model Lesson {
@@ -173,4 +188,13 @@ model AdminAction {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Faq {
+  id        Int      @id @default(autoincrement())
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  Int
+  question  String
+  answer    String
+  createdAt DateTime @default(now())
 }
