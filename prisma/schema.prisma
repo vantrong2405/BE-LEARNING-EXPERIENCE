@@ -68,11 +68,21 @@ model Course {
   courseFeatures     String?
   requirements       String?
 
+  level   Level? @relation(fields: [levelId], references: [id])
+  levelId Int?
+
   lessons     Lesson[]
   enrollments Enrollment[]
   reviews     Review[]
   payments    Payment[]
   faqs        Faq[]
+}
+
+model Level {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  courses     Course[]
 }
 
 model Lesson {

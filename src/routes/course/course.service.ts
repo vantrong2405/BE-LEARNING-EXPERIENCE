@@ -130,6 +130,7 @@ export class CoursesService {
         filters: {
             categoryId?: number;
             priceRange?: [number, number];
+            ratingRange?: [number, number];
         },
         { page, limit }: { page: number; limit: number }
     ) {
@@ -145,6 +146,17 @@ export class CoursesService {
                 where.price = {
                     gte: filters.priceRange[0],
                     lte: filters.priceRange[1]
+                };
+            }
+
+            if (filters.ratingRange) {
+                where.reviews = {
+                    some: {
+                        rating: {
+                            gte: filters.ratingRange[0],
+                            lte: filters.ratingRange[1]
+                        }
+                    }
                 };
             }
 
@@ -251,6 +263,16 @@ export class CoursesService {
         bannerUrl: string;
         categoryId?: number;
         isPublished?: boolean;
+        moneyBackGuarantee?: boolean;
+        videoHours?: number;
+        articlesCount?: number;
+        downloadableResources?: number;
+        lifetimeAccess?: boolean;
+        certificate?: boolean;
+        courseOverview?: string;
+        learningObjectives?: string;
+        courseFeatures?: string;
+        requirements?: string;
     }) {
         try {
             return await this.prismaService.course.create({
@@ -262,7 +284,17 @@ export class CoursesService {
                     thumbnailUrl: data.thumbnailUrl,
                     bannerUrl: data.bannerUrl,
                     categoryId: data.categoryId,
-                    isPublished: data.isPublished ?? false
+                    isPublished: data.isPublished ?? false,
+                    moneyBackGuarantee: data.moneyBackGuarantee ?? true,
+                    videoHours: data.videoHours ?? 0,
+                    articlesCount: data.articlesCount ?? 0,
+                    downloadableResources: data.downloadableResources ?? 0,
+                    lifetimeAccess: data.lifetimeAccess ?? true,
+                    certificate: data.certificate ?? true,
+                    courseOverview: data.courseOverview,
+                    learningObjectives: data.learningObjectives,
+                    courseFeatures: data.courseFeatures,
+                    requirements: data.requirements
                 },
                 include: {
                     instructor: {
@@ -298,6 +330,16 @@ export class CoursesService {
         bannerUrl?: string;
         categoryId?: number;
         isPublished?: boolean;
+        moneyBackGuarantee?: boolean;
+        videoHours?: number;
+        articlesCount?: number;
+        downloadableResources?: number;
+        lifetimeAccess?: boolean;
+        certificate?: boolean;
+        courseOverview?: string;
+        learningObjectives?: string;
+        courseFeatures?: string;
+        requirements?: string;
     }) {
         try {
             const course = await this.prismaService.course.findUnique({
