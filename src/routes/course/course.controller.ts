@@ -44,6 +44,7 @@ export class CoursesController {
         @Query('categoryId', new ParseIntPipe) categoryId?: number,
         @Query('minPrice', new ParseIntPipe) minPrice?: number,
         @Query('maxPrice', new ParseIntPipe) maxPrice?: number,
+        @Query('levelId', new ParseIntPipe) levelId?: number,
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
     ) {

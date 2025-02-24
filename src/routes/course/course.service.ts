@@ -131,6 +131,7 @@ export class CoursesService {
             categoryId?: number;
             priceRange?: [number, number];
             ratingRange?: [number, number];
+            levelId?: number;
         },
         { page, limit }: { page: number; limit: number }
     ) {
@@ -142,10 +143,21 @@ export class CoursesService {
                 where.categoryId = filters.categoryId;
             }
 
+            if (filters.levelId) {
+                where.levelId = filters.levelId;
+            }
+
             if (filters.priceRange) {
                 where.price = {
                     gte: filters.priceRange[0],
                     lte: filters.priceRange[1]
+                };
+            }
+
+            if (filters.ratingRange) {
+                where.rating = {
+                    gte: filters.ratingRange[0],
+                    lte: filters.ratingRange[1]
                 };
             }
 
@@ -273,6 +285,7 @@ export class CoursesService {
         learningObjectives?: string;
         courseFeatures?: string;
         requirements?: string;
+        levelId?: number;
     }) {
         try {
             return await this.prismaService.course.create({
@@ -294,7 +307,8 @@ export class CoursesService {
                     courseOverview: data.courseOverview,
                     learningObjectives: data.learningObjectives,
                     courseFeatures: data.courseFeatures,
-                    requirements: data.requirements
+                    requirements: data.requirements,
+                    levelId: data.levelId
                 },
                 include: {
                     instructor: {
@@ -340,6 +354,7 @@ export class CoursesService {
         learningObjectives?: string;
         courseFeatures?: string;
         requirements?: string;
+        levelId?: number;
     }) {
         try {
             const course = await this.prismaService.course.findUnique({
