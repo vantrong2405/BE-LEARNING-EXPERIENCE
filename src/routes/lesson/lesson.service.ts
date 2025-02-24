@@ -21,7 +21,32 @@ export class LessonService {
                     skip,
                     take: limit,
                     include: {
-                        course: true,
+                        course: {
+                            select: {
+                                id: true,
+                                title: true,
+                                description: true,
+                                price: true,
+                                thumbnailUrl: true,
+                                bannerUrl: true,
+                                isPublished: true,
+                                createdAt: true,
+                                updatedAt: true,
+                                instructor: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        username: true,
+                                        avatarUrl: true,
+                                        bio: true,
+                                        gender: true,
+                                        createdAt: true,
+                                        updatedAt: true
+                                    }
+                                },
+                                category: true
+                            }
+                        },
                         videos: true
                     },
                     orderBy: {
