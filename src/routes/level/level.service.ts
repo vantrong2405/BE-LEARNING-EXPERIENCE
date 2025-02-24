@@ -44,37 +44,6 @@ export class LevelService {
         }
     }
 
-    async getLevelById(id: number) {
-        try {
-            const level = await this.prismaService.level.findUnique({
-                where: { id },
-                include: {
-                    courses: {
-                        select: {
-                            id: true,
-                            title: true,
-                            description: true,
-                            price: true,
-                            thumbnailUrl: true,
-                            bannerUrl: true,
-                            isPublished: true,
-                            createdAt: true,
-                            updatedAt: true
-                        }
-                    }
-                }
-            });
-
-            if (!level) {
-                throw new Error('Level not found');
-            }
-
-            return level;
-        } catch (error) {
-            throw new Error('Failed to fetch level');
-        }
-    }
-
     async createLevel(data: { name: string; description?: string }) {
         try {
             const existingLevel = await this.prismaService.level.findFirst({

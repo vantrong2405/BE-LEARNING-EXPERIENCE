@@ -22,10 +22,6 @@ export class LevelController {
         return await this.levelService.getLevels({ page, limit });
     }
 
-    @Get('/:id')
-    async getLevelById(@Param('id') id: string) {
-        return await this.levelService.getLevelById(Number(id));
-    }
 
     @Post()
     async createLevel(@Body() body: CreateLevelDto) {
