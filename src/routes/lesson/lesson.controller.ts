@@ -25,19 +25,19 @@ export class LessonController {
         return await this.lessonService.getLessonsByCourseId(Number(courseId), { page, limit });
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
+    // @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Post()
     async createLesson(@Body() body: CreateLessonDTO) {
         return await this.lessonService.createLesson(body);
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
+    // @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Patch('/:id')
     async updateLesson(@Param('id') id: string, @Body() body: UpdateLessonDTO) {
         return await this.lessonService.updateLesson(Number(id), body);
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
+    // @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Delete('/:id')
     async deleteLesson(@Param('id') id: string) {
         return await this.lessonService.deleteLesson(Number(id));

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/shared/services/prisma.service';
+import { CreateCourseDTO } from './course.dto';
 
 @Injectable()
 export class CoursesService {
@@ -266,27 +267,7 @@ export class CoursesService {
         }
     }
 
-    async createCourse(data: {
-        title: string;
-        description?: string;
-        price: number;
-        instructorId: number;
-        thumbnailUrl?: string;
-        bannerUrl: string;
-        categoryId?: number;
-        isPublished?: boolean;
-        moneyBackGuarantee?: boolean;
-        videoHours?: number;
-        articlesCount?: number;
-        downloadableResources?: number;
-        lifetimeAccess?: boolean;
-        certificate?: boolean;
-        courseOverview?: string;
-        learningObjectives?: string;
-        courseFeatures?: string;
-        requirements?: string;
-        levelId?: number;
-    }) {
+    async createCourse(data:CreateCourseDTO) {
         try {
             return await this.prismaService.course.create({
                 data: {
@@ -294,21 +275,11 @@ export class CoursesService {
                     description: data.description,
                     price: data.price,
                     instructorId: data.instructorId,
+                    categoryId: data.categoryId,
+                    levelId: data.levelId,
                     thumbnailUrl: data.thumbnailUrl,
                     bannerUrl: data.bannerUrl,
-                    categoryId: data.categoryId,
-                    isPublished: data.isPublished ?? false,
-                    moneyBackGuarantee: data.moneyBackGuarantee ?? true,
-                    videoHours: data.videoHours ?? 0,
-                    articlesCount: data.articlesCount ?? 0,
-                    downloadableResources: data.downloadableResources ?? 0,
-                    lifetimeAccess: data.lifetimeAccess ?? true,
-                    certificate: data.certificate ?? true,
-                    courseOverview: data.courseOverview,
-                    learningObjectives: data.learningObjectives,
-                    courseFeatures: data.courseFeatures,
-                    requirements: data.requirements,
-                    levelId: data.levelId
+                    isPublished: data.isPublished ?? false, // Mặc định là false nếu không có
                 },
                 include: {
                     instructor: {
