@@ -92,23 +92,15 @@ export class LessonService {
 
     async updateLesson(id: number, data: UpdateLessonDTO) {
         try {
-            const lesson = await this.prismaService.lesson.findUnique({
-                where: { id }
-            });
-
-            if (!lesson) {
-                throw new Error('Lesson not found');
-            }
-
             return await this.prismaService.lesson.update({
                 where: { id },
-                data,
-                include: {
-                    course: true,
-                    videos: true
-                }
+                data: {
+                    title: data.title,
+                    order: data.order,
+                } ,
             });
         } catch (error) {
+            console.error("Error in updateLesson service:", error);
             throw new Error('Failed to update lesson');
         }
     }
@@ -120,16 +112,17 @@ export class LessonService {
             });
 
             if (!lesson) {
-                throw new Error('Lesson not found');
+                throw new Error('lesson not found');
             }
 
             await this.prismaService.lesson.delete({
                 where: { id }
             });
 
-            return { message: 'Lesson deleted successfully' };
+            return { message: 'Level deleted successfully' };
         } catch (error) {
-            throw new Error('Failed to delete lesson');
+            throw new Error('Failed to delete level');
         }
     }
 }
+

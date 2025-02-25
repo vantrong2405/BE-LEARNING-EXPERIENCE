@@ -1,7 +1,6 @@
 import { ClassSerializerInterceptor, Module } from '@nestjs/common'
 import { SharedModule } from './shared/shared.module';
 import { AuthModule } from './routes/auth/auth.module';
-import { CatchEverythingFilter } from './shared/common/http-exception.filter'
 import { CoursesModule } from './routes/course/course.module';
 import { CategoryModule } from './routes/category/category.module';
 import { MediaModule } from './routes/media/media.module';
@@ -28,10 +27,6 @@ import { LeverModule } from './routes/level/lever.module';
     {
       provide: "APP_INTERCEPTOR",
       useClass: ClassSerializerInterceptor
-    },
-    {
-      provide: APP_FILTER,
-      useClass: CatchEverythingFilter
     }
   ]
 })
