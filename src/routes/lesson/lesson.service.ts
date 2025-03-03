@@ -50,7 +50,7 @@ export class LessonService {
                         videos: true
                     },
                     orderBy: {
-                        createdAt: 'desc'
+                        createdAt: 'asc'
                     }
                 })
             ]);
@@ -73,17 +73,41 @@ export class LessonService {
 
     async createLesson(data: CreateLessonDTO) {
         try {
-            return await this.prismaService.lesson.create({
-                data: {
-                    title: data.title,
-                    content: data.description,
-                    courseId: data.courseId,
-                    order: data.order
-                },
-                include: {
-                    course: true,
-                    videos: true
+            return await this.prismaService.$transaction(async (prisma) => {
+                // Check if there's any lesson with the requested order
+                const existingLesson = await prisma.lesson.findFirst({
+                    where: {
+                        courseId: data.courseId,
+                        order: data.order
+                    }
+                });
+
+                // Only shift lessons if there's a conflict
+                if (existingLesson) {
+                    await prisma.lesson.updateMany({
+                        where: {
+                            courseId: data.courseId,
+                            order: { gte: data.order }
+                        },
+                        data: {
+                            order: { increment: 1 }
+                        }
+                    });
                 }
+
+                // Create the new lesson
+                return await prisma.lesson.create({
+                    data: {
+                        title: data.title,
+                        content: data.description,
+                        courseId: data.courseId,
+                        order: data.order
+                    },
+                    include: {
+                        course: true,
+                        videos: true
+                    }
+                });
             });
         } catch (error) {
             throw new Error('Failed to create lesson');
@@ -97,7 +121,7 @@ export class LessonService {
                 data: {
                     title: data.title,
                     order: data.order,
-                } ,
+                },
             });
         } catch (error) {
             console.error("Error in updateLesson service:", error);
@@ -107,21 +131,37 @@ export class LessonService {
 
     async deleteLesson(id: number) {
         try {
-            const lesson = await this.prismaService.lesson.findUnique({
-                where: { id }
+            return await this.prismaService.$transaction(async (prisma) => {
+                // Find the lesson to be deleted
+                const lesson = await prisma.lesson.findUnique({
+                    where: { id },
+                    select: { courseId: true, order: true }
+                });
+
+                if (!lesson) {
+                    throw new Error('Lesson not found');
+                }
+
+                // Delete the lesson
+                await prisma.lesson.delete({
+                    where: { id }
+                });
+
+                // Shift down the order of all lessons after the deleted one
+                await prisma.lesson.updateMany({
+                    where: {
+                        courseId: lesson.courseId,
+                        order: { gt: lesson.order }
+                    },
+                    data: {
+                        order: { decrement: 1 }
+                    }
+                });
+
+                return { message: 'Lesson deleted successfully' };
             });
-
-            if (!lesson) {
-                throw new Error('lesson not found');
-            }
-
-            await this.prismaService.lesson.delete({
-                where: { id }
-            });
-
-            return { message: 'Level deleted successfully' };
         } catch (error) {
-            throw new Error('Failed to delete level');
+            throw new Error('Failed to delete lesson');
         }
     }
 }
