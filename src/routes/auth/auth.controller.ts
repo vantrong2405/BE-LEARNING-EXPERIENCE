@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Query, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDTO, LoginBodyDTO, LogoutBodyDTO, RefreshTokenBodyDTO, RegisterBodyDTO, ResetPasswordDTO, VerifyEmailDTO } from './auth.dto';
 import { Response } from 'express'
@@ -115,5 +115,17 @@ export class AuthController {
     async updateMe(@Req() req, @Body() body: UpdateProfileDTO) {
         const userId = req[REQUEST_USER_KEY].userId;
         return await this.authService.updateProfile(userId, body);
+    }
+
+    @Get('/users')
+    @UseGuards(AccessTokenGuard)
+    async getAllUsers() {
+        return await this.authService.getAllUsers();
+    }
+
+    @Delete('/users/:id')
+    @UseGuards(AccessTokenGuard)
+    async deleteUser(@Param('id') userId: number) {
+        return await this.authService.deleteUser(userId);
     }
 }

@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { HashingService } from 'src/shared/services/hashing.service';
 import { PrismaService } from 'src/shared/services/prisma.service';
 import { LoginBodyDTO, RegisterBodyDTO } from './auth.dto';
@@ -473,8 +473,6 @@ export class AuthService {
                     reviews: true,
                     roleId: true,
                     verify: true,
-                    createdAt: true,
-                    updatedAt: true
                 }
             });
 
@@ -484,10 +482,7 @@ export class AuthService {
 
             return user;
         } catch (error) {
-            if (error instanceof BadRequestException) {
-                throw error;
-            }
-            throw new BadRequestException('Failed to get user profile');
+            throw error;
         }
     }
 
@@ -508,8 +503,6 @@ export class AuthService {
                     reviews: true,
                     roleId: true,
                     verify: true,
-                    createdAt: true,
-                    updatedAt: true
                 }
             });
 
@@ -519,10 +512,7 @@ export class AuthService {
 
             return user;
         } catch (error) {
-            if (error instanceof BadRequestException) {
-                throw error;
-            }
-            throw new BadRequestException('Failed to get user profile');
+            throw error;
         }
     }
 
@@ -549,10 +539,7 @@ export class AuthService {
 
             return { message: 'Password changed successfully' };
         } catch (error) {
-            if (error instanceof BadRequestException) {
-                throw error;
-            }
-            throw new BadRequestException('Failed to change password');
+            throw error;
         }
     }
 
@@ -586,17 +573,57 @@ export class AuthService {
                     reviews: true,
                     roleId: true,
                     verify: true,
-                    createdAt: true,
-                    updatedAt: true
                 }
             });
 
             return updatedUser;
         } catch (error) {
-            if (error instanceof BadRequestException) {
-                throw error;
+            throw error;
+        }
+    }
+
+    async getAllUsers() {
+        try {
+            const result = await this.prismaService.user.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    gender: true,
+                    dateOfBirth: true,
+                    bio: true,
+                    avatarUrl: true,
+                    courses: true,
+                    reviews: true,
+                    roleId: true,
+                    verify: true,
+                }
+            });
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteUser(userId: number) {
+        try {
+            const user = await this.prismaService.user.findUnique({
+                where: { id: userId },
+            });
+            console.log("🚀 ~ AuthService ~ deleteUser ~ user:", user)
+
+            if (!user) {
+                throw new NotFoundException('User not found')
             }
-            throw new BadRequestException('Failed to update profile');
+
+            await this.prismaService.user.delete({
+                where: { id: user.id }
+            })
+
+            return { message: 'User deleted successfully' };
+        } catch (error) {
+            throw error;
         }
     }
 }
