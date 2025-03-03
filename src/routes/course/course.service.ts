@@ -8,13 +8,40 @@ export class CoursesService {
         private readonly prismaService: PrismaService
     ) { }
 
-    async getCourse({ page, limit }: { page: number; limit: number }) {
+    async getCourse({ page, limit, query, categoryId, minPrice, maxPrice, minRating, maxRating, levelId }: { page: number; limit: number; query?: string; categoryId?: number; minPrice?: number; maxPrice?: number; minRating?: number; maxRating?: number; levelId?: number; }) {
         try {
             const skip = (page - 1) * limit;
+            const where: any = {};
+
+            // Add search conditions if query is provided
+            if (query) {
+                where.OR = [
+                    { title: { contains: query, mode: 'insensitive' } },
+                    { description: { contains: query, mode: 'insensitive' } },
+                    { instructor: { name: { contains: query, mode: 'insensitive' } } }
+                ];
+            }
+
+            // Add filter conditions
+            if (categoryId) where.categoryId = categoryId;
+            if (levelId) where.levelId = levelId;
+            if (minPrice !== undefined && maxPrice !== undefined) {
+                where.price = {
+                    gte: minPrice,
+                    lte: maxPrice
+                };
+            }
+            if (minRating !== undefined && maxRating !== undefined) {
+                where.rating = {
+                    gte: minRating,
+                    lte: maxRating
+                };
+            }
 
             const [total, courses] = await Promise.all([
-                this.prismaService.course.count(),
+                this.prismaService.course.count({ where }),
                 this.prismaService.course.findMany({
+                    where,
                     skip,
                     take: limit,
                     include: {
@@ -267,7 +294,7 @@ export class CoursesService {
         }
     }
 
-    async createCourse(data:CreateCourseDTO) {
+    async createCourse(data: CreateCourseDTO) {
         try {
             return await this.prismaService.course.create({
                 data: {

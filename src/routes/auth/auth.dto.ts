@@ -91,21 +91,21 @@ export class RequestPasswordResetDTO {
 
 export class ForgotPasswordDTO {
     @IsNotEmpty()
-    @IsEmail()
-    email: string;
+    @IsString()
+    email: string
 }
 
 export class ResetPasswordDTO {
     @IsNotEmpty()
     @IsString()
     forgot_password_token: string;
-
+    token: string;
     @IsNotEmpty()
     @IsString()
     @Length(6, 20)
     new_password: string;
 
-    @IsNotEmpty()
+    newPassword: string;
     @Match("new_password")
     confirm_password: string;
 }

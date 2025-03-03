@@ -6,7 +6,6 @@ import { CategoryModule } from './routes/category/category.module';
 import { MediaModule } from './routes/media/media.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { APP_FILTER } from '@nestjs/core';
 import { StaticModule } from './routes/static/static.module';
 import { LessonModule } from './routes/lesson/lesson.module';
 import { LeverModule } from './routes/level/lever.module';

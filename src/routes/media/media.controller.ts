@@ -5,6 +5,7 @@ import { MediaService } from './media.service';
 import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 
+@UseGuards(AccessTokenGuard, VerifiedGuard)
 @Controller('media')
 // @UseGuards(AccessTokenGuard, VerifiedGuard)
 export class MediaController {

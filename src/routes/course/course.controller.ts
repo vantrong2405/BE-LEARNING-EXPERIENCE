@@ -5,46 +5,15 @@ import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 
 @Controller('course')
-// @UseGuards(AccessTokenGuard, VerifiedGuard)
+
 export class CoursesController {
     constructor(
         private readonly coursesService: CoursesService
     ) { }
 
     @Get()
-    async getCourse(
-        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-        @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
-    ) {
-        if (page < 1) {
-            throw new BadRequestException('Page number must be greater than 0');
-        }
-        if (limit < 1 || limit > 100) {
-            throw new BadRequestException('Limit must be between 1 and 100');
-        }
-        return await this.coursesService.getCourse({ page, limit });
-    }
-
-    @Get('/search')
-    async searchCourses(
-        @Query('query') query: string,
-        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-        @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
-    ) {
-        if (!query) {
-            throw new BadRequestException('Search query is required');
-        }
-        if (page < 1) {
-            throw new BadRequestException('Page number must be greater than 0');
-        }
-        if (limit < 1 || limit > 100) {
-            throw new BadRequestException('Limit must be between 1 and 100');
-        }
-        return await this.coursesService.searchCourses(query, { page, limit });
-    }
-
-    @Get('/filter')
-    async filterCourses(
+    async getCourses(
+        @Query('query') query?: string,
         @Query('categoryId', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) categoryId?: number,
         @Query('minPrice', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) minPrice?: number,
         @Query('maxPrice', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) maxPrice?: number,
@@ -61,18 +30,17 @@ export class CoursesController {
             throw new BadRequestException('Limit must be between 1 and 100');
         }
 
-        const filters: any = {};
-
-        if (categoryId) filters.categoryId = categoryId;
-        if (levelId) filters.levelId = levelId;
-        if (minPrice !== undefined && maxPrice !== undefined) {
-            filters.priceRange = [minPrice, maxPrice];
-        }
-        if (minRating !== undefined && maxRating !== undefined) {
-            filters.ratingRange = [minRating, maxRating];
-        }
-
-        return await this.coursesService.filterCourses(filters, { page, limit });
+        return await this.coursesService.getCourse({
+            page,
+            limit,
+            query,
+            categoryId,
+            minPrice,
+            maxPrice,
+            minRating,
+            maxRating,
+            levelId
+        });
     }
 
     @Get('/:id')
@@ -84,6 +52,7 @@ export class CoursesController {
         return course;
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Post()
     async createCourse(@Body() body: CreateCourseDTO) {
         try {
@@ -93,6 +62,7 @@ export class CoursesController {
         }
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Patch('/:id')
     async updateCourse(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateCourseDTO) {
         const course = await this.coursesService.getCourseById(id);
@@ -106,6 +76,7 @@ export class CoursesController {
         }
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Delete('/:id')
     async deleteCourse(@Param('id', ParseIntPipe) id: number) {
         const course = await this.coursesService.getCourseById(id);

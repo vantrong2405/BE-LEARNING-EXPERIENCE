@@ -1,6 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ParseIntPipe, DefaultValuePipe, BadRequestException, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ParseIntPipe, DefaultValuePipe, BadRequestException, NotFoundException, ConflictException, InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { LevelService } from './level.service';
 import { CreateLevelDto, UpdateLevelDto } from './level.dto';
+import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
+import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 
 @Controller('level')
 export class LevelController {
@@ -22,7 +24,7 @@ export class LevelController {
         return await this.levelService.getLevels({ page, limit });
     }
 
-
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Post()
     async createLevel(@Body() body: CreateLevelDto) {
         try {
@@ -35,6 +37,7 @@ export class LevelController {
         }
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Patch('/:id')
     async updateLevel(
         @Param('id') id: string,
@@ -43,6 +46,7 @@ export class LevelController {
         return await this.levelService.updateLevel(Number(id), body);
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Delete('/:id')
     async deleteLevel(@Param('id') id: string) {
         return await this.levelService.deleteLevel(Number(id));

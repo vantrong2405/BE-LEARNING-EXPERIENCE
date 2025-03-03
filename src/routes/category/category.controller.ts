@@ -1,5 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ParseIntPipe, DefaultValuePipe, BadRequestException, UseGuards } from '@nestjs/common';
 import { CategoryService } from './category.service';
+import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
+import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 
 @Controller('category')
 export class CategoryController {
@@ -26,11 +28,13 @@ export class CategoryController {
         return await this.categoryService.getCategoryById(Number(id));
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Post()
     async createCategory(@Body() body: { name: string; description?: string }) {
         return await this.categoryService.createCategory(body);
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Patch('/:id')
     async updateCategory(
         @Param('id') id: string,
@@ -39,6 +43,7 @@ export class CategoryController {
         return await this.categoryService.updateCategory(Number(id), body);
     }
 
+    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Delete('/:id')
     async deleteCategory(@Param('id') id: string) {
         return await this.categoryService.deleteCategory(Number(id));
