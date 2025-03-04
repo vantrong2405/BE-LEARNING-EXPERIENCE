@@ -3,9 +3,10 @@ import { CoursesService } from './course.service';
 import { CreateCourseDTO, UpdateCourseDTO } from './course.dto';
 import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
+import { RolesGuard } from 'src/shared/guards/roles.guard';
+import { Roles } from 'src/shared/decorators/roles.decorator';
 
 @Controller('course')
-
 export class CoursesController {
     constructor(
         private readonly coursesService: CoursesService
@@ -52,7 +53,8 @@ export class CoursesController {
         return course;
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
+    @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
+    @Roles('admin', 'instructor')
     @Post()
     async createCourse(@Body() body: CreateCourseDTO) {
         try {
@@ -62,7 +64,8 @@ export class CoursesController {
         }
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
+    @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
+    @Roles('admin', 'instructor')
     @Patch('/:id')
     async updateCourse(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateCourseDTO) {
         const course = await this.coursesService.getCourseById(id);
@@ -76,7 +79,8 @@ export class CoursesController {
         }
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
+    @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
+    @Roles('admin', 'instructor')
     @Delete('/:id')
     async deleteCourse(@Param('id', ParseIntPipe) id: number) {
         const course = await this.coursesService.getCourseById(id);

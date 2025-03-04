@@ -3,6 +3,8 @@ import { LevelService } from './level.service';
 import { CreateLevelDto, UpdateLevelDto } from './level.dto';
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 import { VerifiedGuard } from 'src/shared/guards/verified.guard';
+import { RolesGuard } from 'src/shared/guards/roles.guard';
+import { Roles } from 'src/shared/decorators/roles.decorator';
 
 @Controller('level')
 export class LevelController {
@@ -24,7 +26,6 @@ export class LevelController {
         return await this.levelService.getLevels({ page, limit });
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Post()
     async createLevel(@Body() body: CreateLevelDto) {
         try {
@@ -37,7 +38,6 @@ export class LevelController {
         }
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Patch('/:id')
     async updateLevel(
         @Param('id') id: string,
@@ -46,7 +46,6 @@ export class LevelController {
         return await this.levelService.updateLevel(Number(id), body);
     }
 
-    @UseGuards(AccessTokenGuard, VerifiedGuard)
     @Delete('/:id')
     async deleteLevel(@Param('id') id: string) {
         return await this.levelService.deleteLevel(Number(id));

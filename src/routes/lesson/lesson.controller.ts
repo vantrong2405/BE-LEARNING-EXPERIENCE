@@ -3,6 +3,8 @@ import { LessonService } from './lesson.service';
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 import { CreateLessonDTO, UpdateLessonDTO } from './lesson.dto';
+import { RolesGuard } from 'src/shared/guards/roles.guard';
+import { Roles } from 'src/shared/decorators/roles.decorator';
 
 @Controller('lesson')
 @UseGuards(AccessTokenGuard, VerifiedGuard)
@@ -26,16 +28,22 @@ export class LessonController {
         return await this.lessonService.getLessonsByCourseId(Number(courseId), { page, limit });
     }
 
+    @UseGuards(RolesGuard)
+    @Roles('admin', 'instructor')
     @Post()
     async createLesson(@Body() body: CreateLessonDTO) {
         return await this.lessonService.createLesson(body);
     }
 
+    @UseGuards(RolesGuard)
+    @Roles('admin', 'instructor')
     @Patch('/:id')
     async updateLesson(@Param('id') id: string, @Body() body: UpdateLessonDTO) {
         return await this.lessonService.updateLesson(Number(id), body);
     }
 
+    @UseGuards(RolesGuard)
+    @Roles('admin', 'instructor')
     @Delete('/:id')
     async deleteLesson(@Param('id') id: string) {
         return await this.lessonService.deleteLesson(Number(id));
