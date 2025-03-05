@@ -80,6 +80,7 @@ model Course {
   reviews     Review[]
   payments    Payment[]
   faqs        Faq[]
+  videos      Video[]
 }
 
 model Level {
@@ -103,13 +104,18 @@ model Lesson {
 }
 
 model Video {
-  id        String   @id @default(uuid())
-  lesson    Lesson   @relation(fields: [lessonId], references: [id])
-  lessonId  String
-  videoUrl  String
-  duration  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  lesson      Lesson   @relation(fields: [lessonId], references: [id])
+  lessonId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  courseId    String
+  orderLesson Int      @default(1)
+  title       String
+  description String?
+  videoUrl    String
+  duration    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Enrollment {
