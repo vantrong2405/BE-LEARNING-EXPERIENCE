@@ -68,7 +68,7 @@ export class LevelService {
         }
     }
 
-    async updateLevel(id: number, data: { name?: string; description?: string }) {
+    async updateLevel(id: string, data: { name?: string; description?: string }) {
         try {
             const level = await this.prismaService.level.findUnique({
                 where: { id },
@@ -90,7 +90,7 @@ export class LevelService {
         }
     }
 
-    async deleteLevel(id: number) {
+    async deleteLevel(id: string) {
         try {
             const level = await this.prismaService.level.findUnique({
                 where: { id }

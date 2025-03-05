@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  User
+  Instructor
+  Admin
+}
+
 enum UploadType {
   Image
   Video
@@ -18,7 +24,7 @@ model User {
   name                  String
   email                 String   @unique
   password              String
-  roleId                String
+  role                  Role     @default(User)
   verify                Int      @default(0)
   status_account        Int      @default(1)
   dateOfBirth           DateTime
@@ -35,8 +41,6 @@ model User {
   payments      Payment[]
   refreshTokens RefreshToken[]
   courses       Course[]       @relation("CourseInstructor")
-  adminActions  AdminAction[]  @relation("AdminActions")
-  AdminAction   AdminAction[]
 }
 
 model Course {
@@ -151,25 +155,6 @@ model Review {
   updatedAt DateTime @updatedAt
 }
 
-model Role {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
-
-  permissions RolePermission[]
-}
-
-model RolePermission {
-  id        String   @id @default(uuid())
-  role      Role     @relation(fields: [roleId], references: [id])
-  roleId    String
-  permId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model RefreshToken {
   id        String   @id @default(uuid())
   user      User     @relation(fields: [userId], references: [id])
@@ -186,18 +171,6 @@ model Upload {
   fileUrl    String
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
-}
-
-model AdminAction {
-  id          String   @id @default(uuid())
-  admin       User     @relation("AdminActions", fields: [adminId], references: [id])
-  adminId     String
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  action      String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
 
 model Faq {

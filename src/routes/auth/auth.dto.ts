@@ -53,9 +53,8 @@ export class RegisterBodyDTO {
     dateOfBirth: Date;
 
     @IsNotEmpty()
-    @IsNumber({}, { message: "Role ID must be a number" })
-    @IsIn([0, 1, 2], { message: "roleId must be 0 (student), 1 (instructor), or 2 (admin)" })
-    roleId: number;
+    @IsIn(['Admin', 'Instructor', 'User'], { message: "roleId must be 'Admin', 'Instructor', or 'User'" })
+    role: string;
 }
 
 // custom DTO
@@ -83,16 +82,10 @@ export class VerifyEmailDTO {
     email_verify_token: string;
 }
 
-export class RequestPasswordResetDTO {
+export class ForgotPasswordDTO {
     @IsNotEmpty()
     @IsEmail()
     email: string;
-}
-
-export class ForgotPasswordDTO {
-    @IsNotEmpty()
-    @IsString()
-    email: string
 }
 
 export class ResetPasswordDTO {

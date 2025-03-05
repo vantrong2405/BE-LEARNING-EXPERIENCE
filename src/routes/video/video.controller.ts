@@ -11,7 +11,7 @@ export class VideoController {
     ) { }
 
     @Post()
-    async createVideo(@Body() body: { lessonId: number; videoUrl: string; duration: number }) {
+    async createVideo(@Body() body: { lessonid: string; videoUrl: string; duration: number }) {
         return await this.videoService.createVideo(body);
     }
 

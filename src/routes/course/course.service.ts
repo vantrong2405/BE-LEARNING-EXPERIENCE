@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/shared/services/prisma.service';
-import { CreateCourseDTO } from './course.dto';
+import { CreateCourseDTO, UpdateCourseDTO } from './course.dto';
 
 @Injectable()
 export class CoursesService {
@@ -8,7 +8,7 @@ export class CoursesService {
         private readonly prismaService: PrismaService
     ) { }
 
-    async getCourse({ page, limit, query, categoryId, minPrice, maxPrice, minRating, maxRating, levelId }: { page: number; limit: number; query?: string; categoryId?: number; minPrice?: number; maxPrice?: number; minRating?: number; maxRating?: number; levelId?: number; }) {
+    async getCourse({ page, limit, query, categoryId, minPrice, maxPrice, minRating, maxRating, levelId }: { page: number; limit: number; query?: string; categoryId?: string; minPrice?: number; maxPrice?: number; minRating?: number; maxRating?: number; levelId?: string; }) {
         try {
             const skip = (page - 1) * limit;
             const where: any = {};
@@ -23,8 +23,8 @@ export class CoursesService {
             }
 
             // Add filter conditions
-            if (categoryId) where.categoryId = categoryId;
-            if (levelId) where.levelId = levelId;
+            if (categoryId) where.categoryId = Number(categoryId);
+            if (levelId) where.levelId = Number(levelId);
             if (minPrice !== undefined && maxPrice !== undefined) {
                 where.price = {
                     gte: minPrice,
@@ -51,7 +51,7 @@ export class CoursesService {
                                 name: true,
                                 username: true,
                                 email: true,
-                                roleId: true,
+                                role: true,
                                 verify: true,
                                 status_account: true,
                                 dateOfBirth: true,
@@ -118,7 +118,7 @@ export class CoursesService {
                                 name: true,
                                 username: true,
                                 email: true,
-                                roleId: true,
+                                role: true,
                                 verify: true,
                                 status_account: true,
                                 dateOfBirth: true,
@@ -213,7 +213,7 @@ export class CoursesService {
                                 name: true,
                                 username: true,
                                 email: true,
-                                roleId: true,
+                                role: true,
                                 verify: true,
                                 status_account: true,
                                 dateOfBirth: true,
@@ -250,7 +250,7 @@ export class CoursesService {
         }
     }
 
-    async getCourseById(id: number) {
+    async getCourseById(id: string) {
         try {
             const course = await this.prismaService.course.findUnique({
                 where: { id },
@@ -261,7 +261,7 @@ export class CoursesService {
                             name: true,
                             username: true,
                             email: true,
-                            roleId: true,
+                            role: true,
                             verify: true,
                             status_account: true,
                             dateOfBirth: true,
@@ -315,7 +315,7 @@ export class CoursesService {
                             name: true,
                             username: true,
                             email: true,
-                            roleId: true,
+                            role: true,
                             verify: true,
                             status_account: true,
                             dateOfBirth: true,
@@ -334,26 +334,7 @@ export class CoursesService {
         }
     }
 
-    async updateCourse(id: number, data: {
-        title?: string;
-        description?: string;
-        price?: number;
-        thumbnailUrl?: string;
-        bannerUrl?: string;
-        categoryId?: number;
-        isPublished?: boolean;
-        moneyBackGuarantee?: boolean;
-        videoHours?: number;
-        articlesCount?: number;
-        downloadableResources?: number;
-        lifetimeAccess?: boolean;
-        certificate?: boolean;
-        courseOverview?: string;
-        learningObjectives?: string;
-        courseFeatures?: string;
-        requirements?: string;
-        levelId?: number;
-    }) {
+    async updateCourse(id: string, data: UpdateCourseDTO) {
         try {
             const course = await this.prismaService.course.findUnique({
                 where: { id }
@@ -365,7 +346,11 @@ export class CoursesService {
 
             return await this.prismaService.course.update({
                 where: { id },
-                data,
+                data: {
+                    ...data,
+                    categoryId: String(data.categoryId),
+                    levelId: String(data.levelId)
+                },
                 include: {
                     instructor: {
                         select: {
@@ -373,7 +358,7 @@ export class CoursesService {
                             name: true,
                             username: true,
                             email: true,
-                            roleId: true,
+                            role: true,
                             verify: true,
                             status_account: true,
                             dateOfBirth: true,
@@ -391,7 +376,7 @@ export class CoursesService {
         }
     }
 
-    async deleteCourse(id: number) {
+    async deleteCourse(id: string) {
         try {
             const course = await this.prismaService.course.findUnique({
                 where: { id }

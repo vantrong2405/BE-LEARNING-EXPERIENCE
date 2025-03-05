@@ -67,7 +67,7 @@ export class CategoryService {
         }
     }
 
-    async getCategoryById(id: number) {
+    async getCategoryById(id: string) {
         try {
             const category = await this.prismaService.category.findUnique({
                 where: { id },
@@ -133,7 +133,7 @@ export class CategoryService {
         }
     }
 
-    async updateCategory(id: number, data: {
+    async updateCategory(id: string, data: {
         name?: string;
         description?: string;
     }) {
@@ -158,7 +158,7 @@ export class CategoryService {
         }
     }
 
-    async deleteCategory(id: number) {
+    async deleteCategory(id: string) {
         try {
             const category = await this.prismaService.category.findUnique({
                 where: { id }

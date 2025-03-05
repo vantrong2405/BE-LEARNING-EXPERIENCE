@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, MinLength, MaxLength } from 'class-validator'
+import { IsString, IsNumber, IsOptional, IsBoolean, MinLength, MaxLength, isString } from 'class-validator'
 
 export class CreateLessonDTO {
   @IsOptional()
@@ -13,8 +13,8 @@ export class CreateLessonDTO {
   description?: string
 
   @IsOptional()
-  @IsNumber()
-  courseId: number
+  @IsString()
+  courseId: string
 
   @IsOptional()
   @IsNumber()
@@ -38,8 +38,8 @@ export class UpdateLessonDTO {
   description?: string
 
   @IsOptional()
-  @IsNumber()
-  courseId: number
+  @IsString()
+  courseId: string
 
   @IsOptional()
   @IsNumber()

@@ -1,12 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ParseIntPipe, DefaultValuePipe, BadRequestException, UseGuards, NotFoundException } from '@nestjs/common';
 import { CoursesService } from './course.service';
 import { CreateCourseDTO, UpdateCourseDTO } from './course.dto';
-import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
 import { Roles } from 'src/shared/decorators/roles.decorator';
+import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 
-@Controller('course')
 export class CoursesController {
     constructor(
         private readonly coursesService: CoursesService
@@ -15,12 +14,12 @@ export class CoursesController {
     @Get()
     async getCourses(
         @Query('query') query?: string,
-        @Query('categoryId', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) categoryId?: number,
+        @Query('categoryId', new DefaultValuePipe(undefined)) categoryId?: string,
         @Query('minPrice', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) minPrice?: number,
         @Query('maxPrice', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) maxPrice?: number,
         @Query('minRating', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) minRating?: number,
         @Query('maxRating', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) maxRating?: number,
-        @Query('levelId', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) levelId?: number,
+        @Query('levelId', new DefaultValuePipe(undefined)) levelId?: string,
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
     ) {
@@ -45,7 +44,7 @@ export class CoursesController {
     }
 
     @Get('/:id')
-    async getCourseById(@Param('id', ParseIntPipe) id: number) {
+    async getCourseById(@Param('id', ParseIntPipe) id: string) {
         const course = await this.coursesService.getCourseById(id);
         if (!course) {
             throw new NotFoundException('Course not found');
@@ -67,7 +66,7 @@ export class CoursesController {
     @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
     @Roles('admin', 'instructor')
     @Patch('/:id')
-    async updateCourse(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateCourseDTO) {
+    async updateCourse(@Param('id', ParseIntPipe) id: string, @Body() body: UpdateCourseDTO) {
         const course = await this.coursesService.getCourseById(id);
         if (!course) {
             throw new NotFoundException('Course not found');
@@ -82,7 +81,7 @@ export class CoursesController {
     @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
     @Roles('admin', 'instructor')
     @Delete('/:id')
-    async deleteCourse(@Param('id', ParseIntPipe) id: number) {
+    async deleteCourse(@Param('id', ParseIntPipe) id: string) {
         const course = await this.coursesService.getCourseById(id);
         if (!course) {
             throw new NotFoundException('Course not found');

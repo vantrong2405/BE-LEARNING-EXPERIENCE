@@ -8,7 +8,7 @@ export class LessonService {
         private readonly prismaService: PrismaService
     ) { }
 
-    async getLessonsByCourseId(courseId: number, { page, limit }: { page: number; limit: number }) {
+    async getLessonsByCourseId(courseId: string, { page, limit }: { page: number; limit: number }) {
         try {
             const skip = (page - 1) * limit;
 
@@ -114,7 +114,7 @@ export class LessonService {
         }
     }
 
-    async updateLesson(id: number, data: UpdateLessonDTO) {
+    async updateLesson(id: string, data: UpdateLessonDTO) {
         try {
             return await this.prismaService.lesson.update({
                 where: { id },
@@ -129,7 +129,7 @@ export class LessonService {
         }
     }
 
-    async deleteLesson(id: number) {
+    async deleteLesson(id: string) {
         try {
             return await this.prismaService.$transaction(async (prisma) => {
                 // Find the lesson to be deleted

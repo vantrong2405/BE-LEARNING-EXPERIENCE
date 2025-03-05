@@ -1,5 +1,5 @@
 export interface TokenPayload {
-    userId: number
+    userId: string
     roleId?: number
     verify?: number
     iat: number

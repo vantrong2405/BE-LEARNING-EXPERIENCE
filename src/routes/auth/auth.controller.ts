@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Query, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDTO, LoginBodyDTO, LogoutBodyDTO, RefreshTokenBodyDTO, RegisterBodyDTO, ResetPasswordDTO, VerifyEmailDTO } from './auth.dto';
 import { Response } from 'express'
@@ -104,7 +104,7 @@ export class AuthController {
 
     @Get('/profile/:id')
     @UseGuards(AccessTokenGuard)
-    async getProfile(@Param('id') userId: number) {
+    async getProfile(@Param('id') userId: string) {
         return await this.authService.getProfileUserDiff(userId);
     }
 
@@ -132,7 +132,7 @@ export class AuthController {
     @UseGuards(AccessTokenGuard, RolesGuard)
     @Roles('admin')
     @Delete('/users/:id')
-    async deleteUser(@Param('id') userId: number) {
+    async deleteUser(@Param('id') userId: string) {
         return await this.authService.deleteUser(userId);
     }
 }

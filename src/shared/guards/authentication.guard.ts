@@ -17,7 +17,13 @@ export class AuthenticationGuard implements CanActivate {
         private readonly reflector: Reflector,
         private readonly accessTokenGuard: AccessTokenGuard,
         private readonly apiKeyGuard: APIKeyGuard
-    ) { }
+    ) {
+        this.authTypeGuardMap = {
+            [AuthType.Bearer]: this.accessTokenGuard,
+            [AuthType.APIKey]: this.apiKeyGuard,
+            [AuthType.None]: { canActivate: () => true }
+        };
+    }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const authTypeValue = this.reflector.getAllAndOverride<AuthTypeDecoratorPayload | undefined>(AUTH_TYPE_KEY, [
@@ -25,10 +31,15 @@ export class AuthenticationGuard implements CanActivate {
             context.getClass(),
         ]) ?? { authTypes: [AuthType.None], options: { condition: ConditionGuard.And } };
 
-        // ✅ Fix lỗi map trên `undefined` bằng cách kiểm tra authTypeValue.authTypes
-        const guards = ('authTypes' in authTypeValue ? authTypeValue.authTypes : [AuthType.None]).map((authType) => this.authTypeGuardMap[authType]);
+        const guards = ('authTypes' in authTypeValue ? authTypeValue.authTypes : [AuthType.None]).map((authType) => {
+            const guard = this.authTypeGuardMap[authType];
+            if (!guard) {
+                throw new Error(`Unknown auth type: ${authType}`);
+            }
+            return guard;
+        });
 
-        let error = new UnauthorizedException();
+        let error = new UnauthorizedException('Authentication failed');
 
         if (authTypeValue.options.condition === ConditionGuard.Or) {
             for (const instance of guards) {

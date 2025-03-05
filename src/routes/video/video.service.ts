@@ -7,7 +7,7 @@ export class VideoService {
         private readonly prismaService: PrismaService
     ) { }
 
-    async createVideo(data: { lessonId: number; videoUrl: string; duration: number }) {
+    async createVideo(data: { lessonid: string; videoUrl: string; duration: number }) {
         try {
             return await this.prismaService.video.create({
                 data: {
@@ -24,7 +24,7 @@ export class VideoService {
         }
     }
 
-    async getVideosByLessonId(lessonId: number) {
+    async getVideosByLessonId(lessonid: string) {
         try {
             return await this.prismaService.video.findMany({
                 where: { lessonId },
@@ -37,7 +37,7 @@ export class VideoService {
         }
     }
 
-    async updateVideo(id: number, data: { videoUrl?: string; duration?: number }) {
+    async updateVideo(id: string, data: { videoUrl?: string; duration?: number }) {
         try {
             const video = await this.prismaService.video.findUnique({
                 where: { id }
@@ -59,7 +59,7 @@ export class VideoService {
         }
     }
 
-    async deleteVideo(id: number) {
+    async deleteVideo(id: string) {
         try {
             const video = await this.prismaService.video.findUnique({
                 where: { id }

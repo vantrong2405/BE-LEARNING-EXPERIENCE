@@ -1,7 +1,7 @@
 import { Exclude } from "class-transformer"
 
 export class UserModel {
-    id: number
+    id: string
     email: string
     @Exclude() password: string
     createdAt: Date

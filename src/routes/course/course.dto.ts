@@ -23,16 +23,16 @@ export class CreateCourseDTO {
     bannerUrl: string;
 
     @IsNotEmpty()
-    @IsNumber()
-    instructorId: number;
+    @IsString()
+    instructorId: string;
 
     @IsNotEmpty()
-    @IsNumber()
-    categoryId: number;
+    @IsString()
+    categoryId: string;
 
     @IsNotEmpty()
-    @IsNumber()
-    levelId: number;
+    @IsString()
+    levelId: string;
 
     @IsOptional()
     @IsBoolean()
@@ -105,11 +105,11 @@ export class UpdateCourseDTO {
     bannerUrl?: string;
 
     @IsOptional()
-    @IsNumber()
+    @IsString()
     categoryId?: number;
 
     @IsOptional()
-    @IsNumber()
+    @IsString()
     levelId?: number;
 
     @IsOptional()

@@ -25,7 +25,7 @@ export class LessonController {
         if (limit < 1 || limit > 100) {
             throw new BadRequestException('Limit must be between 1 and 100');
         }
-        return await this.lessonService.getLessonsByCourseId(Number(courseId), { page, limit });
+        return await this.lessonService.getLessonsByCourseId(courseId, { page, limit });
     }
 
     @UseGuards(RolesGuard)
@@ -39,13 +39,13 @@ export class LessonController {
     @Roles('admin', 'instructor')
     @Patch('/:id')
     async updateLesson(@Param('id') id: string, @Body() body: UpdateLessonDTO) {
-        return await this.lessonService.updateLesson(Number(id), body);
+        return await this.lessonService.updateLesson(id, body);
     }
 
     @UseGuards(RolesGuard)
     @Roles('admin', 'instructor')
     @Delete('/:id')
     async deleteLesson(@Param('id') id: string) {
-        return await this.lessonService.deleteLesson(Number(id));
+        return await this.lessonService.deleteLesson(id);
     }
 }

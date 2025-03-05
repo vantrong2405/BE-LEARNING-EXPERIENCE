@@ -6,10 +6,9 @@ import { TokenService } from 'src/shared/services/token.service';
 import { EmailService } from 'src/shared/services/email.service';
 import { isNotFoundPrismaError, isUniqueConstrainError } from 'src/shared/helpers';
 import { generateUsername } from 'src/utils/helpers';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import axios from 'axios';
 import envConfig from 'src/shared/config';
-import { verify } from 'crypto';
 import { ChangePasswordDTO, UpdateProfileDTO } from './user.dto';
 import { throwError } from 'rxjs';
 
@@ -23,8 +22,9 @@ export class AuthService {
     ) { }
     async register(body: RegisterBodyDTO) {
         try {
-            const hashedPassword = await this.haShingService.hash(body.password)
+            const hashedPassword = await this.haShingService.hash(body.password);
             const dateOfBirth = body.dateOfBirth ? new Date(body.dateOfBirth) : null;
+
             const user = await this.prismaService.user.create({
                 data: {
                     name: body.name,
@@ -32,7 +32,7 @@ export class AuthService {
                     email: body.email,
                     password: hashedPassword,
                     dateOfBirth: dateOfBirth,
-                    roleId: body.roleId,
+                    role: body.role as Role,
                     verify: 0
                 },
                 select: {
@@ -41,10 +41,10 @@ export class AuthService {
                     username: true,
                     email: true,
                     dateOfBirth: true,
-                    roleId: true,
+                    role: true,
                     createdAt: true,
-                },
-            })
+                }
+            });
 
             const emailVerifyToken = await this.tokenService.signAccessToken({ userId: user.id });
             await this.prismaService.user.update({
@@ -91,13 +91,13 @@ export class AuthService {
         return tokens
     }
 
-    async generateTokens(payload: { userId: number }) {
+    async generateTokens(payload: { userId: string }) {
         const user = await this.prismaService.user.findUnique({
             where: { id: payload.userId },
-            select: { roleId: true, verify: true }
+            select: { role: true, verify: true }
         });
 
-        const tokenPayload = { userId: payload.userId, roleId: user.roleId, verify: user.verify };
+        const tokenPayload = { userId: payload.userId, role: user.role, verify: user.verify };
         const [accessToken, refreshToken] = await Promise.all([
             this.tokenService.signAccessToken(tokenPayload),
             this.tokenService.signRefreshToken(tokenPayload)
@@ -217,7 +217,7 @@ export class AuthService {
                     password: passwordRandom,
                     dateOfBirth: new Date(),
                     confirmPassword: passwordRandom,
-                    roleId: 0
+                    role: 'USER',
                 });
                 return { ...data, newUser: 1, verify: 1 };
             }
@@ -273,7 +273,7 @@ export class AuthService {
         }
     }
 
-    async verifyEmail(userId: number, providedToken: string) {
+    async verifyEmail(userId: string, providedToken: string) {
         try {
             const user = await this.prismaService.user.findFirst({
                 where: {
@@ -306,7 +306,7 @@ export class AuthService {
         }
     }
 
-    async resendVerificationEmail(userId: number) {
+    async resendVerificationEmail(userId: string) {
         try {
             const user = await this.prismaService.user.findUnique({
                 where: { id: userId }
@@ -399,7 +399,7 @@ export class AuthService {
         }
     }
 
-    async resetPassword(userId: number, newPassword: string, confirmPassword: string) {
+    async resetPassword(userId: string, newPassword: string, confirmPassword: string) {
         try {
             if (newPassword !== confirmPassword) {
                 throw new BadRequestException('Passwords do not match');
@@ -440,7 +440,6 @@ export class AuthService {
                 this.prismaService.enrollment.deleteMany(),
                 this.prismaService.lesson.deleteMany(),
                 this.prismaService.refreshToken.deleteMany(),
-                this.prismaService.adminAction.deleteMany(),
                 // Then delete parent tables
                 this.prismaService.course.deleteMany(),
                 this.prismaService.category.deleteMany(),
@@ -456,7 +455,7 @@ export class AuthService {
         }
     }
 
-    async getProfile(userId: number) {
+    async getProfile(userId: string) {
         try {
             const user = await this.prismaService.user.findUnique({
                 where: { id: userId },
@@ -471,7 +470,7 @@ export class AuthService {
                     avatarUrl: true,
                     courses: true,
                     reviews: true,
-                    roleId: true,
+                    role: true,
                     verify: true,
                 }
             });
@@ -486,7 +485,7 @@ export class AuthService {
         }
     }
 
-    async getProfileUserDiff(userId: number) {
+    async getProfileUserDiff(userId: string) {
         try {
             const user = await this.prismaService.user.findUnique({
                 where: { id: userId },
@@ -501,7 +500,7 @@ export class AuthService {
                     avatarUrl: true,
                     courses: true,
                     reviews: true,
-                    roleId: true,
+                    role: true,
                     verify: true,
                 }
             });
@@ -516,7 +515,7 @@ export class AuthService {
         }
     }
 
-    async changePassword(userId: number, body: ChangePasswordDTO) {
+    async changePassword(userId: string, body: ChangePasswordDTO) {
         try {
             const user = await this.prismaService.user.findUnique({
                 where: { id: userId }
@@ -543,7 +542,7 @@ export class AuthService {
         }
     }
 
-    async updateProfile(userId: number, body: UpdateProfileDTO) {
+    async updateProfile(userId: string, body: UpdateProfileDTO) {
         try {
             const user = await this.prismaService.user.findUnique({
                 where: { id: userId }
@@ -571,7 +570,7 @@ export class AuthService {
                     avatarUrl: true,
                     courses: true,
                     reviews: true,
-                    roleId: true,
+                    role: true,
                     verify: true,
                 }
             });
@@ -596,7 +595,7 @@ export class AuthService {
                     avatarUrl: true,
                     courses: true,
                     reviews: true,
-                    roleId: true,
+                    role: true,
                     verify: true,
                 }
             });
@@ -606,7 +605,7 @@ export class AuthService {
         }
     }
 
-    async deleteUser(userId: number) {
+    async deleteUser(userId: string) {
         try {
             const user = await this.prismaService.user.findUnique({
                 where: { id: userId },
