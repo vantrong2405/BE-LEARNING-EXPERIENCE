@@ -9,6 +9,7 @@ import { join } from 'path'
 import { StaticModule } from './routes/static/static.module'
 import { LessonModule } from './routes/lesson/lesson.module'
 import { LeverModule } from './routes/level/lever.module'
+import { VideoModule } from './routes/video/video.module'
 @Module({
   imports: [
     SharedModule,
@@ -18,6 +19,7 @@ import { LeverModule } from './routes/level/lever.module'
     MediaModule,
     LessonModule,
     LeverModule,
+    VideoModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',

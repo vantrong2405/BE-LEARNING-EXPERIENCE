@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
@@ -12,7 +12,7 @@ export class VideoService {
         where: { id: data.courseId },
       })
       if (!course) {
-        throw new Error('Course not found')
+        throw new HttpException('Course not found', HttpStatus.NOT_FOUND)
       }
 
       // Validate lesson existence
@@ -20,7 +20,7 @@ export class VideoService {
         where: { id: data.lessonId },
       })
       if (!lesson) {
-        throw new Error('Lesson not found')
+        throw new HttpException('Lesson not found', HttpStatus.NOT_FOUND)
       }
 
       return await this.prismaService.video.create({
@@ -38,12 +38,22 @@ export class VideoService {
         },
       })
     } catch (error) {
-      throw new Error('Failed to create video')
+      if (error instanceof HttpException) {
+        throw error
+      }
+      throw new HttpException('Failed to create video', HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
   async getVideosByLessonId(lessonId: string) {
     try {
+      const lesson = await this.prismaService.lesson.findUnique({
+        where: { id: lessonId },
+      })
+      if (!lesson) {
+        throw new HttpException('Lesson not found', HttpStatus.NOT_FOUND)
+      }
+
       return await this.prismaService.video.findMany({
         where: { lessonId },
         include: {
@@ -51,7 +61,10 @@ export class VideoService {
         },
       })
     } catch (error) {
-      throw new Error('Failed to fetch videos')
+      if (error instanceof HttpException) {
+        throw error
+      }
+      throw new HttpException('Failed to fetch videos', HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -62,7 +75,7 @@ export class VideoService {
       })
 
       if (!video) {
-        throw new Error('Video not found')
+        throw new HttpException('Video not found', HttpStatus.NOT_FOUND)
       }
 
       return await this.prismaService.video.update({
@@ -73,7 +86,10 @@ export class VideoService {
         },
       })
     } catch (error) {
-      throw new Error('Failed to update video')
+      if (error instanceof HttpException) {
+        throw error
+      }
+      throw new HttpException('Failed to update video', HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -84,7 +100,7 @@ export class VideoService {
       })
 
       if (!video) {
-        throw new Error('Video not found')
+        throw new HttpException('Video not found', HttpStatus.NOT_FOUND)
       }
 
       await this.prismaService.video.delete({
@@ -93,7 +109,10 @@ export class VideoService {
 
       return { message: 'Video deleted successfully' }
     } catch (error) {
-      throw new Error('Failed to delete video')
+      if (error instanceof HttpException) {
+        throw error
+      }
+      throw new HttpException('Failed to delete video', HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 }
