@@ -3,13 +3,33 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class VideoService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { }
 
-  async createVideo(data: { lessonId: string; videoUrl: string; duration: number }) {
+  async createVideo(data: { lessonId: string; courseId: string; orderLesson: number; title: string; description?: string; videoUrl: string; duration: number }) {
     try {
+      // Validate course existence
+      const course = await this.prismaService.course.findUnique({
+        where: { id: data.courseId },
+      })
+      if (!course) {
+        throw new Error('Course not found')
+      }
+
+      // Validate lesson existence
+      const lesson = await this.prismaService.lesson.findUnique({
+        where: { id: data.lessonId },
+      })
+      if (!lesson) {
+        throw new Error('Lesson not found')
+      }
+
       return await this.prismaService.video.create({
         data: {
           lessonId: data.lessonId,
+          courseId: data.courseId,
+          orderLesson: data.orderLesson,
+          title: data.title,
+          description: data.description,
           videoUrl: data.videoUrl,
           duration: data.duration,
         },

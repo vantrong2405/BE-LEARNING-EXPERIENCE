@@ -4,7 +4,7 @@ import { CreateCourseDTO, UpdateCourseDTO } from './course.dto'
 
 @Injectable()
 export class CoursesService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { }
 
   async getCourse({
     page,
@@ -28,6 +28,14 @@ export class CoursesService {
     levelId?: string
   }) {
     try {
+      // Validate input parameters
+      if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
+        throw new BadRequestException('Minimum price cannot be greater than maximum price')
+      }
+      if (minRating !== undefined && maxRating !== undefined && minRating > maxRating) {
+        throw new BadRequestException('Minimum rating cannot be greater than maximum rating')
+      }
+
       const skip = (page - 1) * limit
       const where: any = {}
 
@@ -40,15 +48,35 @@ export class CoursesService {
         ]
       }
 
-      // Add filter conditions
-      if (categoryId) where.categoryId = Number(categoryId)
-      if (levelId) where.levelId = Number(levelId)
+      // Add filter conditions with validation
+      if (categoryId) {
+        const category = await this.prismaService.category.findUnique({ where: { id: categoryId } })
+        if (!category) {
+          throw new BadRequestException({
+            status: 400,
+            message: 'Invalid category ID',
+            error: 'Bad Request',
+            statusCode: 400
+          })
+        }
+        where.categoryId = categoryId
+      }
+
+      if (levelId) {
+        const level = await this.prismaService.level.findUnique({ where: { id: levelId } })
+        if (!level) {
+          throw new BadRequestException('Invalid level ID')
+        }
+        where.levelId = levelId
+      }
+
       if (minPrice !== undefined && maxPrice !== undefined) {
         where.price = {
           gte: minPrice,
           lte: maxPrice,
         }
       }
+
       if (minRating !== undefined && maxRating !== undefined) {
         where.rating = {
           gte: minRating,
@@ -87,7 +115,13 @@ export class CoursesService {
             createdAt: 'desc',
           },
         }),
-      ])
+      ]).catch(error => {
+        throw new BadRequestException({
+          status: 400,
+          message: 'Database operation failed',
+          error: error.message
+        })
+      })
 
       const totalPages = Math.ceil(total / limit)
 
@@ -101,9 +135,13 @@ export class CoursesService {
         },
       }
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error
+      }
       throw new BadRequestException({
         status: 400,
         message: 'Failed to fetch courses',
+        error: error.message
       })
     }
   }

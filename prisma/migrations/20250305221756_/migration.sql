@@ -82,6 +82,10 @@ CREATE TABLE "Lesson" (
 CREATE TABLE "Video" (
     "id" TEXT NOT NULL,
     "lessonId" TEXT NOT NULL,
+    "courseId" TEXT NOT NULL,
+    "orderLesson" INTEGER NOT NULL DEFAULT 1,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
     "videoUrl" TEXT NOT NULL,
     "duration" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -204,6 +208,9 @@ ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_courseId_fkey" FOREIGN KEY ("courseI
 
 -- AddForeignKey
 ALTER TABLE "Video" ADD CONSTRAINT "Video_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Video" ADD CONSTRAINT "Video_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Enrollment" ADD CONSTRAINT "Enrollment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -3,15 +3,50 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { }
 
-  async getCategories({ page, limit }: { page: number; limit: number }) {
+  async getCategories({ page, limit, query, categoryId, minRating, maxRating, levelId }: { page: number; limit: number; query?: string; categoryId?: string; minRating?: number; maxRating?: number; levelId?: string }) {
     try {
       const skip = (page - 1) * limit
 
+      let filter: any = {}
+
+      if (query) {
+        filter.OR = [
+          { name: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+        ]
+      }
+
+      if (categoryId) {
+        filter.id = categoryId
+      }
+
+      if (minRating || maxRating) {
+        filter.courses = {
+          some: {
+            AND: [
+              minRating ? { rating: { gte: minRating } } : {},
+              maxRating ? { rating: { lte: maxRating } } : {},
+            ]
+          }
+        }
+      }
+
+      if (levelId) {
+        filter.courses = {
+          ...filter.courses,
+          some: {
+            ...filter.courses?.some,
+            levelId: levelId
+          }
+        }
+      }
+
       const [total, categories] = await Promise.all([
-        this.prismaService.category.count(),
+        this.prismaService.category.count({ where: filter }),
         this.prismaService.category.findMany({
+          where: filter,
           skip,
           take: limit,
           include: {

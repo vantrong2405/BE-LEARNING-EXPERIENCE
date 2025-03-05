@@ -20,7 +20,7 @@ import { Roles, UserRole } from 'src/shared/decorators/roles.decorator'
 
 @Controller('category')
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) {}
+  constructor(private readonly categoryService: CategoryService) { }
 
   @Get()
   async getCategories(
