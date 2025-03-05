@@ -156,6 +156,18 @@ export class CategoryService {
 
   async createCategory(data: { name: string; description?: string }) {
     try {
+      const category = await this.prismaService.category.findFirst({
+        where: {
+          name: data.name
+        }
+      })
+
+      if (category) {
+        throw new BadRequestException({
+          status: 400,
+          message: 'field name category already exits',
+        })
+      }
       return await this.prismaService.category.create({
         data: {
           name: data.name,
