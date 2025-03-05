@@ -1,21 +1,21 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
 
 export class CreateLevelDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name: string
 
   @IsString()
   @IsOptional()
-  description?: string;
+  description?: string
 }
 
 export class UpdateLevelDto {
   @IsString()
   @IsOptional()
-  name?: string;
+  name?: string
 
   @IsString()
   @IsOptional()
-  description?: string;
+  description?: string
 }
