@@ -61,7 +61,11 @@ export class AuthService {
         } catch (error) {
             console.log("🚀 ~ AuthService ~ register ~ error:", error)
             if (isUniqueConstrainError(error)) {
-                throw new ConflictException('Email already exists')
+                throw new ConflictException({
+                    status: 409,
+                    message: 'Email already exists',
+                    error: 'Conflict'
+                });
             }
             throw error
         }
@@ -75,17 +79,20 @@ export class AuthService {
         })
 
         if (!user) {
-            throw new UnauthorizedException('Email not found')
+            throw new UnauthorizedException({
+                status: 401,
+                message: 'Email not found',
+                error: 'Unauthorized'
+            })
         }
 
         const isPasswordMatch = await this.haShingService.compare(body.password, user.password)
         if (!isPasswordMatch) {
-            throw new UnauthorizedException([
-                {
-                    field: 'password',
-                    error: 'Password is incorrect'
-                }
-            ])
+            throw new UnauthorizedException({
+                status: 401,
+                message: 'Password is incorrect',
+                error: 'Unauthorized'
+            })
         }
         const tokens = await this.generateTokens({ userId: user.id })
         return tokens
@@ -140,7 +147,11 @@ export class AuthService {
 
         } catch (error) {
             if (isNotFoundPrismaError(error)) {
-                throw new UnauthorizedException('Refresh token has been revoked')
+                throw new UnauthorizedException({
+                    status: 401,
+                    message: 'Refresh token has been revoked',
+                    error: 'Unauthorized'
+                })
             }
             throw new UnauthorizedException()
 
@@ -160,7 +171,11 @@ export class AuthService {
             return { message: 'Logout success' }
         } catch (error) {
             if (isNotFoundPrismaError(error)) {
-                throw new UnauthorizedException('Refresh token has been revoked')
+                throw new UnauthorizedException({
+                    status: 401,
+                    message: 'Refresh token has been revoked',
+                    error: 'Unauthorized'
+                })
             }
             throw new UnauthorizedException()
 
@@ -313,11 +328,19 @@ export class AuthService {
             });
 
             if (!user) {
-                throw new BadRequestException('User not found');
+                throw new NotFoundException({
+                status: 404,
+                message: 'User not found',
+                error: 'Not Found'
+            });
             }
 
             if (user.verify === 1) {
-                throw new BadRequestException('Email is already verified');
+                throw new ConflictException({
+                status: 409,
+                message: 'Email is already verified',
+                error: 'Conflict'
+            });
             }
 
             const emailVerifyToken = await this.tokenService.signAccessToken({ userId: user.id });
@@ -410,7 +433,11 @@ export class AuthService {
             });
 
             if (!user) {
-                throw new BadRequestException('User not found');
+                throw new NotFoundException({
+                status: 404,
+                message: 'User not found',
+                error: 'Not Found'
+            });
             }
 
             const hashedPassword = await this.haShingService.hash(newPassword);
@@ -476,7 +503,11 @@ export class AuthService {
             });
 
             if (!user) {
-                throw new BadRequestException('User not found');
+                throw new NotFoundException({
+                status: 404,
+                message: 'User not found',
+                error: 'Not Found'
+            });
             }
 
             return user;
@@ -506,7 +537,11 @@ export class AuthService {
             });
 
             if (!user) {
-                throw new BadRequestException('User not found');
+                throw new NotFoundException({
+                status: 404,
+                message: 'User not found',
+                error: 'Not Found'
+            });
             }
 
             return user;
@@ -522,7 +557,11 @@ export class AuthService {
             });
 
             if (!user) {
-                throw new BadRequestException('User not found');
+                throw new NotFoundException({
+                status: 404,
+                message: 'User not found',
+                error: 'Not Found'
+            });
             }
 
             const isPasswordMatch = await this.haShingService.compare(body.current_password, user.password);
@@ -549,7 +588,11 @@ export class AuthService {
             });
 
             if (!user) {
-                throw new BadRequestException('User not found');
+                throw new NotFoundException({
+                status: 404,
+                message: 'User not found',
+                error: 'Not Found'
+            });
             }
 
             const updatedUser = await this.prismaService.user.update({

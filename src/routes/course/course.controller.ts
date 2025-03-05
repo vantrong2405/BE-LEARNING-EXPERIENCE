@@ -3,9 +3,10 @@ import { CoursesService } from './course.service';
 import { CreateCourseDTO, UpdateCourseDTO } from './course.dto';
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
-import { Roles } from 'src/shared/decorators/roles.decorator';
+import { Roles, UserRole } from 'src/shared/decorators/roles.decorator';
 import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 
+@Controller('course')
 export class CoursesController {
     constructor(
         private readonly coursesService: CoursesService
@@ -53,7 +54,7 @@ export class CoursesController {
     }
 
     @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
-    @Roles('admin', 'instructor')
+    @Roles(UserRole.Admin, UserRole.Instructor)
     @Post()
     async createCourse(@Body() body: CreateCourseDTO) {
         try {
@@ -64,7 +65,7 @@ export class CoursesController {
     }
 
     @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
-    @Roles('admin', 'instructor')
+    @Roles(UserRole.Admin, UserRole.Instructor)
     @Patch('/:id')
     async updateCourse(@Param('id', ParseIntPipe) id: string, @Body() body: UpdateCourseDTO) {
         const course = await this.coursesService.getCourseById(id);
@@ -79,7 +80,7 @@ export class CoursesController {
     }
 
     @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
-    @Roles('admin', 'instructor')
+    @Roles(UserRole.Admin, UserRole.Instructor)
     @Delete('/:id')
     async deleteCourse(@Param('id', ParseIntPipe) id: string) {
         const course = await this.coursesService.getCourseById(id);

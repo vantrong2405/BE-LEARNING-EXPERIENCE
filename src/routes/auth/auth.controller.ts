@@ -7,7 +7,7 @@ import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 import { ChangePasswordDTO, UpdateProfileDTO } from './user.dto';
 import { REQUEST_USER_KEY } from 'src/shared/constant/auth.constant';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
-import { Roles } from 'src/shared/decorators/roles.decorator';
+import { Roles, UserRole } from 'src/shared/decorators/roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -89,7 +89,7 @@ export class AuthController {
     }
 
     @UseGuards(AccessTokenGuard, RolesGuard)
-    @Roles('admin')
+    @Roles(UserRole.Admin)
     @Post('/delete-db')
     async deleteDatabase() {
         return await this.authService.deleteDatabase();
@@ -123,14 +123,14 @@ export class AuthController {
     }
 
     @UseGuards(AccessTokenGuard, RolesGuard)
-    @Roles('admin')
+    @Roles(UserRole.Admin)
     @Get('/users')
     async getAllUsers() {
         return await this.authService.getAllUsers();
     }
 
     @UseGuards(AccessTokenGuard, RolesGuard)
-    @Roles('admin')
+    @Roles(UserRole.Admin)
     @Delete('/users/:id')
     async deleteUser(@Param('id') userId: string) {
         return await this.authService.deleteUser(userId);

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/shared/services/prisma.service';
 
 @Injectable()
@@ -34,7 +34,7 @@ export class CategoryService {
                                         name: true,
                                         username: true,
                                         email: true,
-                                        roleId: true,
+                                        role: true,
                                         verify: true,
                                         status_account: true,
                                         dateOfBirth: true,
@@ -63,7 +63,11 @@ export class CategoryService {
                 }
             };
         } catch (error) {
-            throw new Error('Failed to fetch categories');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to fetch categories',
+                error: 'Bad Request'
+            });
         }
     }
 
@@ -89,7 +93,7 @@ export class CategoryService {
                                     name: true,
                                     username: true,
                                     email: true,
-                                    roleId: true,
+                                    role: true,
                                     verify: true,
                                     status_account: true,
                                     dateOfBirth: true,
@@ -106,7 +110,11 @@ export class CategoryService {
             });
 
             if (!category) {
-                throw new Error('Category not found');
+                throw new NotFoundException({
+                    status: 404,
+                    message: 'Category not found',
+                    error: 'Not Found'
+                });
             }
 
             return category;
@@ -129,7 +137,11 @@ export class CategoryService {
                 }
             });
         } catch (error) {
-            throw new Error('Failed to create category');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to create category',
+                error: 'Bad Request'
+            });
         }
     }
 
@@ -143,7 +155,11 @@ export class CategoryService {
             });
 
             if (!category) {
-                throw new Error('Category not found');
+                throw new NotFoundException({
+                    status: 404,
+                    message: 'Category not found',
+                    error: 'Not Found'
+                });
             }
 
             return await this.prismaService.category.update({
@@ -154,7 +170,11 @@ export class CategoryService {
                 }
             });
         } catch (error) {
-            throw new Error('Failed to update category');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to update category',
+                error: 'Bad Request'
+            });
         }
     }
 
@@ -165,7 +185,11 @@ export class CategoryService {
             });
 
             if (!category) {
-                throw new Error('Category not found');
+                throw new NotFoundException({
+                    status: 404,
+                    message: 'Category not found',
+                    error: 'Not Found'
+                });
             }
 
             await this.prismaService.category.delete({
@@ -174,7 +198,11 @@ export class CategoryService {
 
             return { message: 'Category deleted successfully' };
         } catch (error) {
-            throw new Error('Failed to delete category');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to delete category',
+                error: 'Bad Request'
+            });
         }
     }
 }

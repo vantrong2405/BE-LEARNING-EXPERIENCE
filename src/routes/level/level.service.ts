@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/shared/services/prisma.service';
 
 @Injectable()
@@ -40,7 +40,11 @@ export class LevelService {
                 }
             };
         } catch (error) {
-            throw new Error('Failed to fetch levels');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to fetch levels',
+                error: 'Bad Request'
+            });
         }
     }
 
@@ -51,7 +55,11 @@ export class LevelService {
             });
 
             if (existingLevel) {
-                throw new Error('Level with this name already exists');
+                throw new ConflictException({
+                    status: 409,
+                    message: 'Level with this name already exists',
+                    error: 'Conflict'
+                });
             }
 
             return await this.prismaService.level.create({
@@ -62,7 +70,11 @@ export class LevelService {
                 throw new Error(error.message);
             }
             if (error.code === 'P2002') {
-                throw new Error('Level with this name already exists');
+                throw new ConflictException({
+                    status: 409,
+                    message: 'Level with this name already exists',
+                    error: 'Conflict'
+                });
             }
             throw new Error('Failed to create level: ' + error.message);
         }
@@ -78,7 +90,11 @@ export class LevelService {
             });
 
             if (!level) {
-                throw new Error('Level not found');
+                throw new NotFoundException({
+                    status: 404,
+                    message: 'Level not found',
+                    error: 'Not Found'
+                });
             }
 
             return await this.prismaService.level.update({
@@ -86,7 +102,11 @@ export class LevelService {
                 data
             });
         } catch (error) {
-            throw new Error('Failed to update level');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to update level',
+                error: 'Bad Request'
+            });
         }
     }
 
@@ -97,7 +117,11 @@ export class LevelService {
             });
 
             if (!level) {
-                throw new Error('Level not found');
+                throw new NotFoundException({
+                    status: 404,
+                    message: 'Level not found',
+                    error: 'Not Found'
+                });
             }
 
             await this.prismaService.level.delete({
@@ -106,7 +130,11 @@ export class LevelService {
 
             return { message: 'Level deleted successfully' };
         } catch (error) {
-            throw new Error('Failed to delete level');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to delete level',
+                error: 'Bad Request'
+            });
         }
     }
 }

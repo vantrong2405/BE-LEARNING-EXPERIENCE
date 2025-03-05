@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/shared/services/prisma.service';
 import { CreateCourseDTO, UpdateCourseDTO } from './course.dto';
 
@@ -83,7 +83,11 @@ export class CoursesService {
                 }
             };
         } catch (error) {
-            throw new Error('Failed to fetch courses');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to fetch courses',
+                error: 'Bad Request'
+            });
         }
     }
 
@@ -285,7 +289,11 @@ export class CoursesService {
             });
 
             if (!course) {
-                throw new Error('Course not found');
+                throw new NotFoundException({
+                    status: 404,
+                    message: 'Course not found',
+                    error: 'Not Found'
+                });
             }
 
             return course;
@@ -330,7 +338,11 @@ export class CoursesService {
                 }
             });
         } catch (error) {
-            throw new Error('Failed to create course');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to create course',
+                error: 'Bad Request'
+            });
         }
     }
 
@@ -341,7 +353,11 @@ export class CoursesService {
             });
 
             if (!course) {
-                throw new Error('Course not found');
+                throw new NotFoundException({
+                    status: 404,
+                    message: 'Course not found',
+                    error: 'Not Found'
+                });
             }
 
             return await this.prismaService.course.update({
@@ -372,7 +388,11 @@ export class CoursesService {
                 }
             });
         } catch (error) {
-            throw new Error('Failed to update course');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to update course',
+                error: 'Bad Request'
+            });
         }
     }
 
@@ -383,7 +403,11 @@ export class CoursesService {
             });
 
             if (!course) {
-                throw new Error('Course not found');
+                throw new NotFoundException({
+                    status: 404,
+                    message: 'Course not found',
+                    error: 'Not Found'
+                });
             }
 
             await this.prismaService.course.delete({
@@ -392,7 +416,11 @@ export class CoursesService {
 
             return { message: 'Course deleted successfully' };
         } catch (error) {
-            throw new Error('Failed to delete course');
+            throw new BadRequestException({
+                status: 400,
+                message: 'Failed to delete course',
+                error: 'Bad Request'
+            });
         }
     }
 }

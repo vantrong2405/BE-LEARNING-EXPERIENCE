@@ -3,7 +3,7 @@ import { CategoryService } from './category.service';
 import { AccessTokenGuard } from 'src/shared/guards/access-token.guard';
 import { VerifiedGuard } from 'src/shared/guards/verified.guard';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
-import { Roles } from 'src/shared/decorators/roles.decorator';
+import { Roles, UserRole } from 'src/shared/decorators/roles.decorator';
 
 @Controller('category')
 export class CategoryController {
@@ -27,30 +27,30 @@ export class CategoryController {
 
     @Get('/:id')
     async getCategoryById(@Param('id') id: string) {
-        return await this.categoryService.getCategoryById(Number(id));
+        return await this.categoryService.getCategoryById(id);
     }
 
     @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
-    @Roles('admin', 'instructor')
+    @Roles(UserRole.Admin, UserRole.Instructor)
     @Post()
     async createCategory(@Body() body: { name: string; description?: string }) {
         return await this.categoryService.createCategory(body);
     }
 
     @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
-    @Roles('admin', 'instructor')
+    @Roles(UserRole.Admin, UserRole.Instructor)
     @Patch('/:id')
     async updateCategory(
         @Param('id') id: string,
         @Body() body: { name?: string; description?: string }
     ) {
-        return await this.categoryService.updateCategory(Number(id), body);
+        return await this.categoryService.updateCategory(id, body);
     }
 
     @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
-    @Roles('admin', 'instructor')
+    @Roles(UserRole.Admin, UserRole.Instructor)
     @Delete('/:id')
     async deleteCategory(@Param('id') id: string) {
-        return await this.categoryService.deleteCategory(Number(id));
+        return await this.categoryService.deleteCategory(id);
     }
 }
