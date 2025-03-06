@@ -235,14 +235,16 @@ async function main() {
                     courseId: webDevCourse.id,
                     title: 'HTML & CSS Basics Video',
                     videoUrl: 'http://localhost:4000/static/video-stream/3286efb7-ad94-4184-8399-0a3e3e309a65.mp4',
-                    duration: 600
+                    duration: 600,
+                    orderLesson: 1
                 },
                 {
                     lessonId: jsLesson.id,
                     courseId: webDevCourse.id,
                     title: 'JavaScript Fundamentals Video',
                     videoUrl: 'http://localhost:4000/static/video-stream/3286efb7-ad94-4184-8399-0a3e3e309a65.mp4',
-                    duration: 900
+                    duration: 900,
+                    orderLesson: 2
                 },
             ],
             skipDuplicates: true,
