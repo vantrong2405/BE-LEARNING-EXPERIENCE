@@ -7,35 +7,52 @@ export class VideoService {
 
   async createVideo(data: { lessonId: string; courseId: string; orderLesson: number; title: string; description?: string; videoUrl: string; duration: number }) {
     try {
-      // Validate course existence
-      const course = await this.prismaService.course.findUnique({
-        where: { id: data.courseId },
-      })
-      if (!course) {
-        throw new HttpException('Course not found', HttpStatus.NOT_FOUND)
-      }
+      return await this.prismaService.$transaction(async (prisma) => {
+        // Validate course existence
+        const course = await prisma.course.findUnique({
+          where: { id: data.courseId },
+        })
+        if (!course) {
+          throw new HttpException('Course not found', HttpStatus.NOT_FOUND)
+        }
 
-      // Validate lesson existence
-      const lesson = await this.prismaService.lesson.findUnique({
-        where: { id: data.lessonId },
-      })
-      if (!lesson) {
-        throw new HttpException('Lesson not found', HttpStatus.NOT_FOUND)
-      }
+        // Validate lesson existence
+        const lesson = await prisma.lesson.findUnique({
+          where: { id: data.lessonId },
+        })
+        if (!lesson) {
+          throw new HttpException('Lesson not found', HttpStatus.NOT_FOUND)
+        }
 
-      return await this.prismaService.video.create({
-        data: {
-          lessonId: data.lessonId,
-          courseId: data.courseId,
-          orderLesson: data.orderLesson,
-          title: data.title,
-          description: data.description,
-          videoUrl: data.videoUrl,
-          duration: data.duration,
-        },
-        include: {
-          lesson: true,
-        },
+        // Update order of existing videos
+        await prisma.video.updateMany({
+          where: {
+            lessonId: data.lessonId,
+            orderLesson: {
+              gte: data.orderLesson
+            }
+          },
+          data: {
+            orderLesson: {
+              increment: 1
+            }
+          }
+        })
+
+        return await prisma.video.create({
+          data: {
+            lessonId: data.lessonId,
+            courseId: data.courseId,
+            orderLesson: data.orderLesson,
+            title: data.title,
+            description: data.description,
+            videoUrl: data.videoUrl,
+            duration: data.duration,
+          },
+          include: {
+            lesson: true,
+          },
+        })
       })
     } catch (error) {
       if (error instanceof HttpException) {
