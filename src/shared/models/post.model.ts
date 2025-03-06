@@ -1,1 +1,1 @@
-export class PostModel { }
+export class PostModel {}
