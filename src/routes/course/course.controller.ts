@@ -22,7 +22,7 @@ import { VerifiedGuard } from 'src/shared/guards/verified.guard'
 
 @Controller('course')
 export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) {}
+  constructor(private readonly coursesService: CoursesService) { }
 
   @Get()
   async getCourses(
@@ -57,7 +57,7 @@ export class CoursesController {
   }
 
   @Get('/:id')
-  async getCourseById(@Param('id', ParseIntPipe) id: string) {
+  async getCourseById(@Param('id') id: string) {
     const course = await this.coursesService.getCourseById(id)
     if (!course) {
       throw new NotFoundException('Course not found')
