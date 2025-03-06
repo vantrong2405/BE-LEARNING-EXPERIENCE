@@ -98,6 +98,8 @@ model Lesson {
   content   String?
   order     Int
   createdAt DateTime @default(now())
+
+  @@unique([courseId, order])
   updatedAt DateTime @updatedAt
 
   videos Video[]
@@ -116,6 +118,8 @@ model Video {
   duration    Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([lessonId, orderLesson])
 }
 
 model Enrollment {
