@@ -42,6 +42,7 @@ model User {
   refreshTokens RefreshToken[]
   courses       Course[]       @relation("CourseInstructor")
   Cart          Cart?
+  Order         Order[]
 }
 
 model Course {
@@ -83,6 +84,7 @@ model Course {
   faqs        Faq[]
   videos      Video[]
   CartItem    CartItem[]
+  OrderItem   OrderItem[]
 }
 
 model Level {
@@ -216,4 +218,38 @@ model CartItem {
   updatedAt DateTime @updatedAt
 
   @@unique([cartId, courseId]) // Mỗi khóa học chỉ xuất hiện một lần trong giỏ hàng
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        String
+  totalAmount   Float
+  status        OrderStatus @default(PENDING)
+  paymentMethod String
+  transactionId String?     @unique
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  orderItems    OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  String
+  quantity  Int      @default(1)
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orderId, courseId]) // Mỗi khóa học chỉ xuất hiện một lần trong đơn hàng
+}
+
+enum OrderStatus {
+  PENDING // Đơn hàng đang chờ xử lý
+  COMPLETED // Thanh toán thành công
+  CANCELED // Đơn hàng bị hủy
+  FAILED // Thanh toán thất bại
 }
