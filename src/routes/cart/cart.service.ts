@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from 'src/shared/services/prisma.service';
 
 @Injectable()
@@ -91,7 +91,7 @@ export class CartService {
         });
 
         if (enrollment) {
-            throw new Error('You are already enrolled in this course');
+            throw new ConflictException('You are already enrolled in this course');
         }
 
         // Check if course is already in cart
@@ -105,7 +105,7 @@ export class CartService {
         });
 
         if (existingCartItem) {
-            throw new Error('Course is already in cart');
+            throw new ConflictException('Course is already in cart');
         }
 
         return await this.prismaService.cartItem.create({
@@ -139,10 +139,7 @@ export class CartService {
         const cart = await this.getCart(userId);
         const cartItem = await this.prismaService.cartItem.findUnique({
             where: {
-                cartId_courseId: {
-                    cartId: cart.id,
-                    courseId
-                }
+                id: courseId
             }
         });
 
@@ -171,13 +168,22 @@ export class CartService {
         return { message: 'Cart cleared successfully' };
     }
 
-    async getCartTotal(userId: string) {
+    async getCartTotal(userId: string, courseIds: string[]) {
         const cart = await this.getCart(userId);
+
+        // Validate that all courses exist and are in the cart
         const cartItems = await this.prismaService.cartItem.findMany({
             where: {
-                cartId: cart.id
+                cartId: cart.id,
+                courseId: {
+                    in: courseIds
+                }
             }
         });
+
+        if (cartItems.length !== courseIds.length) {
+            throw new NotFoundException('One or more courses not found in cart');
+        }
 
         const total = cartItems.reduce((sum, item) => sum + item.price, 0);
         return { total };
