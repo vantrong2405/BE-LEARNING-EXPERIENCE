@@ -269,6 +269,28 @@ async function main() {
         skipDuplicates: true,
     });
 
+    // **Seeding Cart and CartItems**
+    // Create a cart for the instructor
+    const instructorCart = await prisma.cart.create({
+        data: {
+            userId: instructor.id,
+            cartItems: {
+                create: [
+                    {
+                        courseId: webDevCourse.id,
+                        price: webDevCourse.price,
+                        quantity: 1
+                    },
+                    {
+                        courseId: advJsCourse.id,
+                        price: advJsCourse.price,
+                        quantity: 1
+                    }
+                ]
+            }
+        }
+    });
+
     console.log('✅ Seeding completed successfully!');
 }
 
