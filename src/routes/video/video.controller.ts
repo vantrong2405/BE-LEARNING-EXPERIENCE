@@ -9,7 +9,7 @@ import { CreateVideoDto } from './video.dto'
 @UseGuards(AccessTokenGuard, VerifiedGuard)
 @Roles(UserRole.Admin, UserRole.Instructor)
 export class VideoController {
-  constructor(private readonly videoService: VideoService) { }
+  constructor(private readonly videoService: VideoService) {}
 
   @Post()
   async createVideo(@Body() createVideoDto: CreateVideoDto) {

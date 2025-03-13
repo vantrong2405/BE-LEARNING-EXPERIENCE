@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   Query,
-  ParseIntPipe,
   DefaultValuePipe,
   BadRequestException,
   UseGuards,
@@ -20,12 +19,12 @@ import { Roles, UserRole } from 'src/shared/decorators/roles.decorator'
 
 @Controller('category')
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) { }
+  constructor(private readonly categoryService: CategoryService) {}
 
   @Get()
   async getCategories(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('page', new DefaultValuePipe(1)) page: number,
+    @Query('limit', new DefaultValuePipe(10)) limit: number,
   ) {
     if (page < 1) {
       throw new BadRequestException('Page number must be greater than 0')

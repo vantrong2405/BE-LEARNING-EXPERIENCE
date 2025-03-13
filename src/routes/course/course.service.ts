@@ -4,7 +4,7 @@ import { CreateCourseDTO, UpdateCourseDTO } from './course.dto'
 
 @Injectable()
 export class CoursesService {
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly prismaService: PrismaService) {}
 
   async getCourse({
     page,
@@ -56,7 +56,7 @@ export class CoursesService {
             status: 400,
             message: 'Invalid category ID',
             error: 'Bad Request',
-            statusCode: 400
+            statusCode: 400,
           })
         }
         where.categoryId = categoryId
@@ -115,11 +115,11 @@ export class CoursesService {
             createdAt: 'desc',
           },
         }),
-      ]).catch(error => {
+      ]).catch((error) => {
         throw new BadRequestException({
           status: 400,
           message: 'Database operation failed',
-          error: error.message
+          error: error.message,
         })
       })
 
@@ -141,7 +141,7 @@ export class CoursesService {
       throw new BadRequestException({
         status: 400,
         message: 'Failed to fetch courses',
-        error: error.message
+        error: error.message,
       })
     }
   }

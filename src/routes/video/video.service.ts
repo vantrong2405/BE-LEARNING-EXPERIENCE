@@ -3,9 +3,17 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class VideoService {
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly prismaService: PrismaService) {}
 
-  async createVideo(data: { lessonId: string; courseId: string; orderLesson: number; title: string; description?: string; videoUrl: string; duration: number }) {
+  async createVideo(data: {
+    lessonId: string
+    courseId: string
+    orderLesson: number
+    title: string
+    description?: string
+    videoUrl: string
+    duration: number
+  }) {
     try {
       return await this.prismaService.$transaction(async (prisma) => {
         // Validate course existence
@@ -29,14 +37,14 @@ export class VideoService {
           where: {
             lessonId: data.lessonId,
             orderLesson: {
-              gte: data.orderLesson
-            }
+              gte: data.orderLesson,
+            },
           },
           data: {
             orderLesson: {
-              increment: 1
-            }
-          }
+              increment: 1,
+            },
+          },
         })
 
         return await prisma.video.create({

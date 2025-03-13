@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   Query,
-  ParseIntPipe,
   DefaultValuePipe,
   BadRequestException,
   UseGuards,
@@ -22,19 +21,19 @@ import { VerifiedGuard } from 'src/shared/guards/verified.guard'
 
 @Controller('course')
 export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) { }
+  constructor(private readonly coursesService: CoursesService) {}
 
   @Get()
   async getCourses(
     @Query('query') query?: string,
     @Query('categoryId', new DefaultValuePipe(undefined)) categoryId?: string,
-    @Query('minPrice', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) minPrice?: number,
-    @Query('maxPrice', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) maxPrice?: number,
-    @Query('minRating', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) minRating?: number,
-    @Query('maxRating', new DefaultValuePipe(undefined), new ParseIntPipe({ optional: true })) maxRating?: number,
+    @Query('minPrice', new DefaultValuePipe(undefined)) minPrice?: number,
+    @Query('maxPrice', new DefaultValuePipe(undefined)) maxPrice?: number,
+    @Query('minRating', new DefaultValuePipe(undefined)) minRating?: number,
+    @Query('maxRating', new DefaultValuePipe(undefined)) maxRating?: number,
     @Query('levelId', new DefaultValuePipe(undefined)) levelId?: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('page', new DefaultValuePipe(1)) page?: number,
+    @Query('limit', new DefaultValuePipe(10)) limit?: number,
   ) {
     if (page < 1) {
       throw new BadRequestException('Page number must be greater than 0')
@@ -79,7 +78,7 @@ export class CoursesController {
   @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
   @Roles(UserRole.Admin, UserRole.Instructor)
   @Patch('/:id')
-  async updateCourse(@Param('id', ParseIntPipe) id: string, @Body() body: UpdateCourseDTO) {
+  async updateCourse(@Param('id') id: string, @Body() body: UpdateCourseDTO) {
     const course = await this.coursesService.getCourseById(id)
     if (!course) {
       throw new NotFoundException('Course not found')
@@ -94,7 +93,7 @@ export class CoursesController {
   @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
   @Roles(UserRole.Admin, UserRole.Instructor)
   @Delete('/:id')
-  async deleteCourse(@Param('id', ParseIntPipe) id: string) {
+  async deleteCourse(@Param('id') id: string) {
     const course = await this.coursesService.getCourseById(id)
     if (!course) {
       throw new NotFoundException('Course not found')

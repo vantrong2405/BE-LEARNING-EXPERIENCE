@@ -4,7 +4,7 @@ import { CreateLessonDTO, UpdateLessonDTO } from './lesson.dto'
 
 @Injectable()
 export class LessonService {
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly prismaService: PrismaService) {}
 
   async getLessonsByCourseId(courseId: string, { page, limit }: { page: number; limit: number }) {
     try {

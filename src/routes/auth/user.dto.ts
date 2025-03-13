@@ -32,4 +32,12 @@ export class UpdateProfileDTO {
   @Type(() => Date)
   @IsDate()
   dateOfBirth?: Date
+
+  @IsOptional()
+  @IsString()
+  bio?: string
+
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string
 }

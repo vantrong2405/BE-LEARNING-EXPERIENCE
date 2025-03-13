@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   Query,
-  ParseIntPipe,
   DefaultValuePipe,
   BadRequestException,
   UseGuards,
@@ -27,8 +26,8 @@ export class LessonController {
   @Get('/course/:courseId')
   async getLessonsByCourseId(
     @Param('courseId') courseId: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('page', new DefaultValuePipe(1)) page: number,
+    @Query('limit', new DefaultValuePipe(10)) limit: number,
   ) {
     if (page < 1) {
       throw new BadRequestException('Page number must be greater than 0')

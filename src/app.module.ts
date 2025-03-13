@@ -10,7 +10,7 @@ import { StaticModule } from './routes/static/static.module'
 import { LessonModule } from './routes/lesson/lesson.module'
 import { LeverModule } from './routes/level/lever.module'
 import { VideoModule } from './routes/video/video.module'
-import { CartModule } from './routes/cart/cart.module';
+import { CartModule } from './routes/cart/cart.module'
 @Module({
   imports: [
     SharedModule,

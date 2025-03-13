@@ -588,6 +588,8 @@ export class AuthService {
           name: body.name,
           gender: body.gender,
           dateOfBirth: body.dateOfBirth,
+          bio: body.bio,
+          avatarUrl: body.avatarUrl
         },
         select: {
           id: true,

@@ -7,19 +7,13 @@ import {
   Patch,
   Post,
   Query,
-  ParseIntPipe,
   DefaultValuePipe,
   BadRequestException,
-  NotFoundException,
   ConflictException,
   InternalServerErrorException,
-  UseGuards,
 } from '@nestjs/common'
 import { LevelService } from './level.service'
 import { CreateLevelDto, UpdateLevelDto } from './level.dto'
-import { AccessTokenGuard } from 'src/shared/guards/access-token.guard'
-import { VerifiedGuard } from 'src/shared/guards/verified.guard'
-import { RolesGuard } from 'src/shared/guards/roles.guard'
 import { Roles, UserRole } from 'src/shared/decorators/roles.decorator'
 
 @Controller('level')
@@ -28,8 +22,8 @@ export class LevelController {
 
   @Get()
   async getLevels(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('page', new DefaultValuePipe(1)) page: number,
+    @Query('limit', new DefaultValuePipe(10)) limit: number,
   ) {
     if (page < 1) {
       throw new BadRequestException('Page number must be greater than 0')
