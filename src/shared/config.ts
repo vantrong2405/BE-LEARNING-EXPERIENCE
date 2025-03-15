@@ -47,6 +47,10 @@ class ConfigSchema {
   CLIENT_URL: string
   @IsString()
   SERVER_URL: string
+  @IsString()
+  NEXT_PUBLIC_SUPABASE_URL: string
+  @IsString()
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: string
 }
 
 const configServer = plainToInstance(ConfigSchema, process.env)

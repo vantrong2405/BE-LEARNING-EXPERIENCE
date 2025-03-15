@@ -7,26 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  User
-  Instructor
-  Admin
-}
-
-enum UploadType {
-  Image
-  Video
-}
-
 model User {
-  id                    String   @id @default(uuid())
-  username              String   @unique
+  id                    String         @id @default(uuid())
+  username              String         @unique
   name                  String
-  email                 String   @unique
+  email                 String         @unique
   password              String
-  role                  Role     @default(User)
-  verify                Int      @default(0)
-  status_account        Int      @default(1)
+  role                  Role           @default(User)
+  verify                Int            @default(0)
+  status_account        Int            @default(1)
   dateOfBirth           DateTime
   avatarUrl             String?
   bio                   String?
@@ -96,22 +85,21 @@ model Level {
 
 model Lesson {
   id        String   @id @default(uuid())
-  course    Course   @relation(fields: [courseId], references: [id])
   courseId  String
   title     String
   content   String?
   order     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id])
+  videos    Video[]
 
-  videos Video[]
+  @@unique([courseId, order])
 }
 
 model Video {
   id          String   @id @default(uuid())
-  lesson      Lesson   @relation(fields: [lessonId], references: [id])
   lessonId    String
-  course      Course   @relation(fields: [courseId], references: [id])
   courseId    String
   orderLesson Int      @default(1)
   title       String
@@ -120,23 +108,25 @@ model Video {
   duration    Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  course      Course   @relation(fields: [courseId], references: [id])
+  lesson      Lesson   @relation(fields: [lessonId], references: [id])
+
+  @@unique([lessonId, orderLesson])
 }
 
 model Enrollment {
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
   userId    String
-  course    Course   @relation(fields: [courseId], references: [id])
   courseId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Payment {
   id            String   @id @default(uuid())
-  user          User     @relation(fields: [userId], references: [id])
   userId        String
-  course        Course   @relation(fields: [courseId], references: [id])
   courseId      String
   amount        Float
   status        Int
@@ -149,31 +139,31 @@ model Payment {
 model Category {
   id        String   @id @default(uuid())
   name      String   @unique
-  courses   Course[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  courses   Course[]
 }
 
 model Review {
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
   userId    String
-  course    Course   @relation(fields: [courseId], references: [id])
   courseId  String
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model RefreshToken {
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
   userId    String
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Upload {
@@ -186,7 +176,6 @@ model Upload {
 
 model Faq {
   id        String   @id @default(uuid())
-  course    Course   @relation(fields: [courseId], references: [id])
   courseId  String
   question  String
   answer    String
