@@ -41,6 +41,7 @@ model User {
   payments      Payment[]
   refreshTokens RefreshToken[]
   courses       Course[]       @relation("CourseInstructor")
+  Order         Order[]
 }
 
 model Course {
@@ -81,6 +82,9 @@ model Course {
   payments    Payment[]
   faqs        Faq[]
   videos      Video[]
+
+  orders      Order[]       @relation("OrderCourses") // Thêm quan hệ ngược với Order
+  OrderCourse OrderCourse[]
 }
 
 model Level {
@@ -139,6 +143,7 @@ model Payment {
   transactionId String   @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  Order         Order[]
 }
 
 model Category {
@@ -187,3 +192,27 @@ model Faq {
   answer    String
   createdAt DateTime @default(now())
 }
+
+model Order {
+  id          String        @id @default(uuid())
+  user        User          @relation(fields: [userId], references: [id])
+  userId      String
+  courses     Course[]      @relation("OrderCourses")
+  status      Int           @default(0)
+  totalAmount Float
+  payment     Payment?      @relation(fields: [paymentId], references: [id])
+  paymentId   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  OrderCourse OrderCourse[]
+}
+
+model OrderCourse {
+  orderId  String
+  courseId String
+  order    Order  @relation(fields: [orderId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id])
+
+  @@id([orderId, courseId])
+}
+  
