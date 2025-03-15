@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "outDir": "./dist",
+    "rootDir": "./src",  
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
@@ -19,5 +20,9 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
-  "exclude": ["uploads", "uploads/**/*", "uploads/videos", "uploads/videos/**/*", "**/*.ts.map", "dist"]
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "uploads", "uploads/**/*", "uploads/videos", "uploads/videos/**/*", 
+    "**/*.ts.map", "dist"
+  ]
 }
