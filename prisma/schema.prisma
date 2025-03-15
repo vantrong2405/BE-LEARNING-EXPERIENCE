@@ -22,51 +22,58 @@ model User {
   gender                String?
   email_verify_token    String?
   forgot_password_token String?
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
-  Cart                  Cart?
-  courses               Course[]       @relation("CourseInstructor")
-  enrollments           Enrollment[]
-  payments              Payment[]
-  refreshTokens         RefreshToken[]
-  reviews               Review[]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  enrollments   Enrollment[]
+  reviews       Review[]
+  payments      Payment[]
+  refreshTokens RefreshToken[]
+  courses       Course[]       @relation("CourseInstructor")
+  Order         Order[]
 }
 
 model Course {
-  id                    String       @id @default(uuid())
-  title                 String
-  description           String?
-  price                 Float        @default(0.00)
-  thumbnailUrl          String?
-  bannerUrl             String
-  instructorId          String
-  categoryId            String?
-  isPublished           Boolean      @default(false)
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-  rating                Float?       @default(0.0)
-  totalReviews          Int?         @default(0)
-  moneyBackGuarantee    Boolean      @default(true)
-  videoHours            Int?         @default(0)
-  articlesCount         Int?         @default(0)
-  downloadableResources Int?         @default(0)
-  lifetimeAccess        Boolean      @default(true)
-  certificate           Boolean      @default(true)
-  courseOverview        String?
-  learningObjectives    String?
-  courseFeatures        String?
-  requirements          String?
-  levelId               String?
-  CartItem              CartItem[]
-  category              Category?    @relation(fields: [categoryId], references: [id])
-  instructor            User         @relation("CourseInstructor", fields: [instructorId], references: [id])
-  level                 Level?       @relation(fields: [levelId], references: [id])
-  enrollments           Enrollment[]
-  faqs                  Faq[]
-  lessons               Lesson[]
-  payments              Payment[]
-  reviews               Review[]
-  videos                Video[]
+  id           String    @id @default(uuid())
+  title        String
+  description  String?
+  price        Float     @default(0.00)
+  thumbnailUrl String?
+  bannerUrl    String
+  instructor   User      @relation("CourseInstructor", fields: [instructorId], references: [id])
+  instructorId String
+  category     Category? @relation(fields: [categoryId], references: [id])
+  categoryId   String?
+  isPublished  Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  rating                Float?  @default(0.0)
+  totalReviews          Int?    @default(0)
+  moneyBackGuarantee    Boolean @default(true)
+  videoHours            Int?    @default(0)
+  articlesCount         Int?    @default(0)
+  downloadableResources Int?    @default(0)
+  lifetimeAccess        Boolean @default(true)
+  certificate           Boolean @default(true)
+
+  courseOverview     String?
+  learningObjectives String?
+  courseFeatures     String?
+  requirements       String?
+
+  level   Level?  @relation(fields: [levelId], references: [id])
+  levelId String?
+
+  lessons     Lesson[]
+  enrollments Enrollment[]
+  reviews     Review[]
+  payments    Payment[]
+  faqs        Faq[]
+  videos      Video[]
+
+  orders      Order[]       @relation("OrderCourses") // Thêm quan hệ ngược với Order
+  OrderCourse OrderCourse[]
 }
 
 model Level {
@@ -126,8 +133,7 @@ model Payment {
   transactionId String   @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  course        Course   @relation(fields: [courseId], references: [id])
-  user          User     @relation(fields: [userId], references: [id])
+  Order         Order[]
 }
 
 model Category {
@@ -174,39 +180,28 @@ model Faq {
   question  String
   answer    String
   createdAt DateTime @default(now())
-  course    Course   @relation(fields: [courseId], references: [id])
 }
 
-model Cart {
-  id        String     @id @default(uuid())
-  userId    String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  user      User       @relation(fields: [userId], references: [id])
-  cartItems CartItem[]
+model Order {
+  id          String        @id @default(uuid())
+  user        User          @relation(fields: [userId], references: [id])
+  userId      String
+  courses     Course[]      @relation("OrderCourses")
+  status      Int           @default(0)
+  totalAmount Float
+  payment     Payment?      @relation(fields: [paymentId], references: [id])
+  paymentId   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  OrderCourse OrderCourse[]
 }
 
-model CartItem {
-  id        String   @id @default(uuid())
-  cartId    String
-  courseId  String
-  quantity  Int      @default(1)
-  price     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  cart      Cart     @relation(fields: [cartId], references: [id])
-  course    Course   @relation(fields: [courseId], references: [id])
+model OrderCourse {
+  orderId  String
+  courseId String
+  order    Order  @relation(fields: [orderId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id])
 
-  @@unique([cartId, courseId])
+  @@id([orderId, courseId])
 }
-
-enum Role {
-  User
-  Instructor
-  Admin
-}
-
-enum UploadType {
-  Image
-  Video
-}
+  
