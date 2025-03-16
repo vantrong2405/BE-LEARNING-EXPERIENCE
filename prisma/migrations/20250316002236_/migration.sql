@@ -4,6 +4,9 @@ CREATE TYPE "Role" AS ENUM ('User', 'Instructor', 'Admin');
 -- CreateEnum
 CREATE TYPE "UploadType" AS ENUM ('Image', 'Video');
 
+-- CreateEnum
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'COMPLETED', 'CANCELED', 'FAILED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -177,34 +180,6 @@ CREATE TABLE "Faq" (
 );
 
 -- CreateTable
-<<<<<<<< HEAD:prisma/migrations/20250315160045_/migration.sql
-CREATE TABLE "Order" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "status" INTEGER NOT NULL DEFAULT 0,
-    "totalAmount" DOUBLE PRECISION NOT NULL,
-    "paymentId" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "OrderCourse" (
-    "orderId" TEXT NOT NULL,
-    "courseId" TEXT NOT NULL,
-
-    CONSTRAINT "OrderCourse_pkey" PRIMARY KEY ("orderId","courseId")
-);
-
--- CreateTable
-CREATE TABLE "_OrderCourses" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
-
-    CONSTRAINT "_OrderCourses_AB_pkey" PRIMARY KEY ("A","B")
-========
 CREATE TABLE "Cart" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -225,7 +200,33 @@ CREATE TABLE "CartItem" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "CartItem_pkey" PRIMARY KEY ("id")
->>>>>>>> 738fe8ee68ab3c28ea5b78030cf9aea72c6748e1:prisma/migrations/20250308044812_/migration.sql
+);
+
+-- CreateTable
+CREATE TABLE "Order" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "totalAmount" DOUBLE PRECISION NOT NULL,
+    "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
+    "paymentMethod" TEXT NOT NULL,
+    "transactionId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OrderItem" (
+    "id" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
+    "courseId" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
+    "price" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -253,14 +254,16 @@ CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
 CREATE UNIQUE INDEX "RefreshToken_token_key" ON "RefreshToken"("token");
 
 -- CreateIndex
-<<<<<<<< HEAD:prisma/migrations/20250315160045_/migration.sql
-CREATE INDEX "_OrderCourses_B_index" ON "_OrderCourses"("B");
-========
 CREATE UNIQUE INDEX "Cart_userId_key" ON "Cart"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CartItem_cartId_courseId_key" ON "CartItem"("cartId", "courseId");
->>>>>>>> 738fe8ee68ab3c28ea5b78030cf9aea72c6748e1:prisma/migrations/20250308044812_/migration.sql
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Order_transactionId_key" ON "Order"("transactionId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "OrderItem_orderId_courseId_key" ON "OrderItem"("orderId", "courseId");
 
 -- AddForeignKey
 ALTER TABLE "Course" ADD CONSTRAINT "Course_instructorId_fkey" FOREIGN KEY ("instructorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -305,24 +308,6 @@ ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userId_fkey" FOREIGN KEY
 ALTER TABLE "Faq" ADD CONSTRAINT "Faq_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-<<<<<<<< HEAD:prisma/migrations/20250315160045_/migration.sql
-ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_paymentId_fkey" FOREIGN KEY ("paymentId") REFERENCES "Payment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "OrderCourse" ADD CONSTRAINT "OrderCourse_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "OrderCourse" ADD CONSTRAINT "OrderCourse_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_OrderCourses" ADD CONSTRAINT "_OrderCourses_A_fkey" FOREIGN KEY ("A") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_OrderCourses" ADD CONSTRAINT "_OrderCourses_B_fkey" FOREIGN KEY ("B") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-========
 ALTER TABLE "Cart" ADD CONSTRAINT "Cart_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -330,4 +315,12 @@ ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_cartId_fkey" FOREIGN KEY ("cartI
 
 -- AddForeignKey
 ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
->>>>>>>> 738fe8ee68ab3c28ea5b78030cf9aea72c6748e1:prisma/migrations/20250308044812_/migration.sql
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
