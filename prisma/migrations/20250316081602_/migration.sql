@@ -2,7 +2,7 @@
 CREATE TYPE "Role" AS ENUM ('User', 'Instructor', 'Admin');
 
 -- CreateEnum
-CREATE TYPE "UploadType" AS ENUM ('Image', 'Video');
+CREATE TYPE "UploadType" AS ENUM ('Image', 'Video', 'Document');
 
 -- CreateEnum
 CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'COMPLETED', 'CANCELED', 'FAILED');
