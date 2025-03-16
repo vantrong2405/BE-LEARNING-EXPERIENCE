@@ -143,31 +143,36 @@ export class CartService {
     }
 
     async removeFromCart(userId: string, courseId: string) {
-       try {
-        const cartItem = await this.prismaService.cartItem.findUnique({
-            where: {
-                id: courseId
-            }
-        });
-        console.log("🚀 ~ CartService ~ removeFromCart ~ cartItem:", cartItem)
+        try {
+            // Tìm kiếm cartItem dựa trên userId và courseId
+            const cartItem = await this.prismaService.cartItem.findFirst({
+                where: {
+                    cart: {
+                        userId: userId // Kiểm tra cart của người dùng
+                    },
+                    courseId: courseId // Tìm khóa học trong cart
+                }
+            });
 
-        if (!cartItem) {
-            throw new NotFoundException('Course not found in cart');
+            console.log("🚀 ~ CartService ~ removeFromCart ~ cartItem:", cartItem);
+
+            if (!cartItem) {
+                throw new NotFoundException('Course not found in cart');
+            }
+
+            await this.prismaService.cartItem.delete({
+                where: {
+                    id: cartItem.id 
+                }
+            });
+
+            return { message: 'Course removed from cart successfully' };
+        } catch (error) {
+            if (error instanceof BadRequestException || error instanceof NotFoundException || error instanceof ConflictException) {
+                throw error;
+            }
+            throw new Error('Failed to delete cart');
         }
-
-        await this.prismaService.cartItem.delete({
-            where: {
-                id: cartItem.id
-            }
-        });
-
-        return { message: 'Course removed from cart successfully' };
-       } catch (error) {
-        if (error instanceof BadRequestException || error instanceof NotFoundException || error instanceof ConflictException) {
-            throw error
-          }
-          throw new Error('Failed to delete cart')
-       }
     }
 
     async clearCart(userId: string) {
