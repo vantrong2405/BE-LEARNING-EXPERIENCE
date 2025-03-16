@@ -53,7 +53,7 @@ async function main() {
                 verify: 1,
                 status_account: 1,
                 dateOfBirth: new Date('1985-05-15'),
-                avatarUrl: 'https://ui-avatars.com/api/?name=John+Smith',
+                avatarUrl: 'https://thumbs.dreamstime.com/b/young-indian-man-happy-outdoors-looking-camera-39595562.jpg',
                 bio: 'Expert instructor with over 10 years of experience',
                 gender: 'Male',
             }
@@ -69,7 +69,7 @@ async function main() {
                 verify: 1,
                 status_account: 1,
                 dateOfBirth: new Date('1988-08-20'),
-                avatarUrl: 'https://ui-avatars.com/api/?name=Sarah+Johnson',
+                avatarUrl: 'https://thumbs.dreamstime.com/b/portrait-happy-young-handsome-business-man-isolated-white-background-32373555.jpg',
                 bio: 'Tech enthusiast and experienced educator',
                 gender: 'Female',
             }
@@ -85,7 +85,7 @@ async function main() {
                 verify: 1,
                 status_account: 1,
                 dateOfBirth: new Date('1982-03-10'),
-                avatarUrl: 'https://ui-avatars.com/api/?name=David+Wilson',
+                avatarUrl: 'https://thumbs.dreamstime.com/z/indian-man-portrait-close-up-happy-young-56800239.jpg',
                 bio: 'Financial expert with MBA from Harvard',
                 gender: 'Male',
             }
@@ -101,7 +101,7 @@ async function main() {
                 verify: 1,
                 status_account: 1,
                 dateOfBirth: new Date('1990-01-01'),
-                avatarUrl: 'https://ui-avatars.com/api/?name=Admin+User',
+                avatarUrl: 'https://i.ytimg.com/vi/PK2TckbJz7o/maxresdefault.jpg',
                 bio: 'System Administrator',
                 gender: 'Other',
             }
@@ -118,7 +118,7 @@ async function main() {
                 verify: 1,
                 status_account: 1,
                 dateOfBirth: new Date('1995-12-15'),
-                avatarUrl: 'https://ui-avatars.com/api/?name=Alice+Brown',
+                avatarUrl: 'https://i.ytimg.com/vi/MwlRg4B7X0c/mqdefault.jpg',
                 bio: 'Lifelong learner',
                 gender: 'Female',
             }
@@ -134,7 +134,7 @@ async function main() {
                 verify: 1,
                 status_account: 1,
                 dateOfBirth: new Date('1993-06-25'),
-                avatarUrl: 'https://ui-avatars.com/api/?name=Bob+Chen',
+                avatarUrl: 'https://cdn.prod.website-files.com/66cc741779a1ebdde4fb3185/66cc741779a1ebdde4fb31ad_feature-1.png',
                 bio: 'Tech enthusiast',
                 gender: 'Male',
             }
