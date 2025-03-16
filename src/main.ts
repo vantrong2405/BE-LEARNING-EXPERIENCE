@@ -39,10 +39,8 @@ async function bootstrap() {
 
     // CORS
     app.enableCors({
-      origin: true,
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-      credentials: true,
-    })
+      origin: '*', // Hoặc chỉ định nguồn cụ thể
+    });
 
     // Static Files
     if (process.env.NODE_ENV !== 'production') {
