@@ -12,6 +12,7 @@ import {
   BadRequestException,
   UseGuards,
   NotFoundException,
+  Request,
 } from '@nestjs/common'
 import { CoursesService } from './course.service'
 import { CreateCourseDTO, UpdateCourseDTO } from './course.dto'
@@ -19,6 +20,7 @@ import { AccessTokenGuard } from 'src/shared/guards/access-token.guard'
 import { RolesGuard } from 'src/shared/guards/roles.guard'
 import { Roles, UserRole } from 'src/shared/decorators/roles.decorator'
 import { VerifiedGuard } from 'src/shared/guards/verified.guard'
+import { REQUEST_USER_KEY } from 'src/shared/constant/auth.constant'
 
 @Controller('course')
 export class CoursesController {
@@ -68,41 +70,23 @@ export class CoursesController {
   @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
   @Roles(UserRole.Admin, UserRole.Instructor)
   @Post()
-  async createCourse(@Body() body: CreateCourseDTO) {
-    try {
-      return await this.coursesService.createCourse(body)
-    } catch (error) {
-      throw new BadRequestException('Failed to create course')
-    }
+  async createCourse(@Body() body: CreateCourseDTO , @Request() req : any) {
+      const userId = req[REQUEST_USER_KEY].userId;
+      return await this.coursesService.createCourse(body , userId)
   }
 
   @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
   @Roles(UserRole.Admin, UserRole.Instructor)
   @Patch('/:id')
-  async updateCourse(@Param('id', ParseIntPipe) id: string, @Body() body: UpdateCourseDTO) {
-    const course = await this.coursesService.getCourseById(id)
-    if (!course) {
-      throw new NotFoundException('Course not found')
-    }
-    try {
-      return await this.coursesService.updateCourse(id, body)
-    } catch (error) {
-      throw new BadRequestException('Failed to update course')
-    }
+  async updateCourse(@Param('id') id: string, @Body() body: UpdateCourseDTO ,  @Request() req : any) {
+    const userId = req[REQUEST_USER_KEY].userId;
+      return await this.coursesService.updateCourse(id, body , userId)
   }
 
   @UseGuards(AccessTokenGuard, VerifiedGuard, RolesGuard)
   @Roles(UserRole.Admin, UserRole.Instructor)
   @Delete('/:id')
-  async deleteCourse(@Param('id', ParseIntPipe) id: string) {
-    const course = await this.coursesService.getCourseById(id)
-    if (!course) {
-      throw new NotFoundException('Course not found')
-    }
-    try {
+  async deleteCourse(@Param('id') id: string) {
       return await this.coursesService.deleteCourse(id)
-    } catch (error) {
-      throw new BadRequestException('Failed to delete course')
-    }
   }
 }

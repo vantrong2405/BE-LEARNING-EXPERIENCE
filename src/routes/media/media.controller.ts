@@ -41,9 +41,6 @@ export class MediaController {
     }),
   )
   async uploadImage(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST)
-    }
     return await this.mediaService.uploadImage(file)
   }
 
@@ -57,16 +54,6 @@ export class MediaController {
     }),
   )
   async uploadVideo(@UploadedFile() file: Express.Multer.File) {
-    const courseId = 1
-    if (!file) {
-      throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST)
-    }
-
-    const allowedMimeTypes = ['video/mp4', 'video/webm']
-    if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new HttpException('Invalid file type. Only MP4 and WebM are allowed', HttpStatus.BAD_REQUEST)
-    }
-
     return await this.mediaService.uploadVideo(file)
   }
 

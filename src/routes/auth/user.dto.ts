@@ -1,5 +1,16 @@
 import { Type } from 'class-transformer'
-import { IsDate, IsEmail, IsIn, IsNotEmpty, IsOptional, IsString, Length, Matches, MinLength } from 'class-validator'
+import {
+  IsDate,
+  IsEmail,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Length,
+  Matches,
+  MinLength,
+} from 'class-validator'
 import { Match } from 'src/shared/decorators/custom-validator.decorator'
 
 export class ChangePasswordDTO {
@@ -32,4 +43,13 @@ export class UpdateProfileDTO {
   @Type(() => Date)
   @IsDate()
   dateOfBirth?: Date
+
+  @IsOptional()
+  @IsString()
+  bio?:string
+
+  @IsOptional()
+  @IsUrl()
+  @IsString()
+  avatarUrl?: string
 }

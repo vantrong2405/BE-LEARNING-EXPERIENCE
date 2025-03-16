@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common'
+import { Injectable, HttpException, HttpStatus, BadRequestException } from '@nestjs/common'
 import * as fs from 'fs'
 import * as path from 'path'
 import { v4 as uuidv4 } from 'uuid'
@@ -30,6 +30,9 @@ export class MediaService {
 
   async uploadImage(file: Express.Multer.File) {
     try {
+      if (!file) {
+        throw new BadRequestException('No file uploaded')
+      }
       const fileExt = path.extname(file.originalname)
       const fileName = `${uuidv4()}${fileExt}`
       const filePath = path.join(UPLOAD_IMAGE_DIR, fileName)
@@ -43,12 +46,23 @@ export class MediaService {
         size: file.size,
       }
     } catch (error) {
-      throw new HttpException('Error uploading image', HttpStatus.INTERNAL_SERVER_ERROR)
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+      throw new Error('Failed upload image')
     }
   }
 
   async uploadVideo(file: Express.Multer.File) {
     try {
+      if (!file) {
+        throw new BadRequestException('No file uploaded')
+      }
+  
+      const allowedMimeTypes = ['video/mp4', 'video/webm']
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        throw new BadRequestException('Invalid file type. Only MP4 and WebM are allowed')
+      }
       const fileExt = path.extname(file.originalname)
       const fileName = `${uuidv4()}${fileExt}`
       const filePath = path.join(UPLOAD_VIDEO_DIR, fileName)
@@ -62,7 +76,10 @@ export class MediaService {
         size: file.size,
       }
     } catch (error) {
-      throw new HttpException('Error uploading video', HttpStatus.INTERNAL_SERVER_ERROR)
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+      throw new Error('Failed upload videos')
     }
   }
 
