@@ -43,14 +43,7 @@ export class LevelController {
   @Post()
   @Roles(UserRole.Admin)
   async createLevel(@Body() body: CreateLevelDto) {
-    try {
       return await this.levelService.createLevel(body)
-    } catch (error) {
-      if (error.message === 'Level with this name already exists') {
-        throw new ConflictException(error.message)
-      }
-      throw new InternalServerErrorException('Failed to create level')
-    }
   }
 
   @Patch('/:id')

@@ -17,6 +17,7 @@ import axios from 'axios'
 import envConfig from 'src/shared/config'
 import { ChangePasswordDTO, UpdateProfileDTO } from './user.dto'
 import { throwError } from 'rxjs'
+import { STATUS_ACCOUNT } from 'src/shared/constant/auth.constant'
 
 @Injectable()
 export class AuthService {
@@ -588,6 +589,8 @@ export class AuthService {
           name: body.name,
           gender: body.gender,
           dateOfBirth: body.dateOfBirth,
+          bio : body.bio,
+          avatarUrl : body.avatarUrl
         },
         select: {
           id: true,
@@ -653,6 +656,34 @@ export class AuthService {
       return { message: 'User deleted successfully' }
     } catch (error) {
       throw error
+    }
+  }
+
+  async changeStatusAccount(userId: string) {
+    try {
+      const user = await this.prismaService.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      await this.prismaService.user.update({
+        where: { id: userId },
+        data: { status_account: user.status_account ? STATUS_ACCOUNT.INACTIVE : STATUS_ACCOUNT.ACTIVE},
+      });
+
+      return { message: 'Change status account successfully' , status_account: user.status_account};
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error
+      }
+      throw new BadRequestException({
+        status: 400,
+        message: 'User not found',
+        error: error.message
+      })
     }
   }
 }

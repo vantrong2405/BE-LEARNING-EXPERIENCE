@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer'
 import { IsNotEmpty, IsString, IsNumber, IsUrl, Min, IsOptional, IsBoolean } from 'class-validator'
 
 export class CreateCourseDTO {
@@ -21,10 +22,6 @@ export class CreateCourseDTO {
   @IsNotEmpty()
   @IsUrl()
   bannerUrl: string
-
-  @IsNotEmpty()
-  @IsString()
-  instructorId: string
 
   @IsNotEmpty()
   @IsString()
@@ -92,11 +89,6 @@ export class UpdateCourseDTO {
   description?: string
 
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  price?: number
-
-  @IsOptional()
   @IsUrl()
   thumbnailUrl?: string
 
@@ -106,11 +98,11 @@ export class UpdateCourseDTO {
 
   @IsOptional()
   @IsString()
-  categoryId?: number
+  categoryId?: string
 
   @IsOptional()
   @IsString()
-  levelId?: number
+  levelId?: string
 
   @IsOptional()
   @IsBoolean()
@@ -121,19 +113,28 @@ export class UpdateCourseDTO {
   moneyBackGuarantee?: boolean
 
   @IsOptional()
-  @IsNumber()
+  @Transform(({ value }) => parseFloat(value)) // Chuyển đổi sang số
+  @IsNumber({}, { message: 'Price must be a number' }) // Cho phép số float
   @Min(0)
-  videoHours?: number
+  price?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Transform(({ value }) => parseFloat(value))
+  @IsNumber({}, { message: 'Video hours must be a number' })
   @Min(0)
-  articlesCount?: number
+  videoHours?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Transform(({ value }) => parseInt(value))
+  @IsNumber({}, { message: 'Articles count must be a number' })
   @Min(0)
-  downloadableResources?: number
+  articlesCount?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value))
+  @IsNumber({}, { message: 'Downloadable resources must be a number' })
+  @Min(0)
+  downloadableResources?: number;
 
   @IsOptional()
   @IsBoolean()

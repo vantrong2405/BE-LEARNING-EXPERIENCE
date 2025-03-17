@@ -135,7 +135,7 @@ export class CoursesService {
         },
       }
     } catch (error) {
-      if (error instanceof BadRequestException) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error
       }
       throw new BadRequestException({
@@ -344,26 +344,43 @@ export class CoursesService {
       })
 
       if (!course) {
-        throw new NotFoundException({
-          status: 404,
-          message: 'Course not found',
-        })
+        throw new NotFoundException('Course not found')
       }
 
       return course
     } catch (error) {
-      throw new Error('Failed to fetch course')
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('Course not found')
+      }
+      throw new BadRequestException('Failed to fetch course')
     }
   }
 
-  async createCourse(data: CreateCourseDTO) {
+  async createCourse(data: CreateCourseDTO, userId: string) {
     try {
+      // Kiểm tra xem danh mục có tồn tại không
+      const category = await this.prismaService.category.findUnique({
+        where: { id: data.categoryId },
+      })
+
+      if (!category) {
+        throw new NotFoundException('Category not found')
+      }
+
+      // Kiểm tra xem cấp độ có tồn tại không
+      const level = await this.prismaService.level.findUnique({
+        where: { id: data.levelId },
+      })
+      if (!level) {
+        throw new BadRequestException('Invalid level ID')
+      }
+
       return await this.prismaService.course.create({
         data: {
           title: data.title,
           description: data.description,
           price: data.price,
-          instructorId: data.instructorId,
+          instructorId: userId,
           categoryId: data.categoryId,
           levelId: data.levelId,
           thumbnailUrl: data.thumbnailUrl,
@@ -392,32 +409,50 @@ export class CoursesService {
         },
       })
     } catch (error) {
-      throw new BadRequestException({
-        status: 400,
-        message: 'Failed to create course',
-      })
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error
+      }
+      throw new Error('Failed to create course')
     }
   }
 
-  async updateCourse(id: string, data: UpdateCourseDTO) {
+  async updateCourse(id: string, data: UpdateCourseDTO , userId : string) {
+    console.log("🚀 ~ CoursesService ~ updateCourse ~ data:", data)
     try {
       const course = await this.prismaService.course.findUnique({
         where: { id },
       })
 
       if (!course) {
-        throw new NotFoundException({
-          status: 404,
-          message: 'Course not found',
+        throw new NotFoundException('Course not found')
+      }
+
+      // Kiểm tra xem danh mục có tồn tại không
+      if (data.categoryId) {
+        const category = await this.prismaService.category.findUnique({
+          where: { id: data.categoryId },
         })
+        if (!category) {
+          throw new NotFoundException('Category not found')
+        }
+      }
+
+      // Kiểm tra xem cấp độ có tồn tại không
+      if (data.levelId) {
+        const level = await this.prismaService.level.findUnique({
+          where: { id: data.levelId },
+        })
+        if (!level) {
+          throw new NotFoundException('level not found')
+        }
       }
 
       return await this.prismaService.course.update({
         where: { id },
         data: {
           ...data,
-          categoryId: String(data.categoryId),
-          levelId: String(data.levelId),
+          categoryId:data.categoryId,
+          levelId:data.levelId,
         },
         include: {
           instructor: {
@@ -440,10 +475,10 @@ export class CoursesService {
         },
       })
     } catch (error) {
-      throw new BadRequestException({
-        status: 400,
-        message: 'Failed to update course',
-      })
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error
+      }
+      throw new Error('Failed to create course')
     }
   }
 
@@ -454,10 +489,7 @@ export class CoursesService {
       })
 
       if (!course) {
-        throw new NotFoundException({
-          status: 404,
-          message: 'Course not found',
-        })
+        throw new NotFoundException('Course not found')
       }
 
       await this.prismaService.course.delete({
@@ -466,10 +498,10 @@ export class CoursesService {
 
       return { message: 'Course deleted successfully' }
     } catch (error) {
-      throw new BadRequestException({
-        status: 400,
-        message: 'Failed to delete course',
-      })
+      if (error instanceof NotFoundException) {
+        throw error
+      }
+      throw new Error('Failed to delete course')
     }
   }
 }

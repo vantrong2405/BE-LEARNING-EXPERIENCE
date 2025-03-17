@@ -10,14 +10,14 @@ export class CartController {
 
   @Get()
   @UseGuards(AccessTokenGuard)
-  async getCart(@Request() req) {
+  async getCart(@Request() req : any) {
     const userId = req[REQUEST_USER_KEY].userId;
     return this.cartService.getCart(userId);
   }
   @Post()
   @UseGuards(AccessTokenGuard)
   async addToCart(
-    @Request() req,
+    @Request() req : any,
     @Body() body: { courseId: string },
   ) {
     const userId = req[REQUEST_USER_KEY].userId;
@@ -27,7 +27,7 @@ export class CartController {
   @Delete(':cartId')
   @UseGuards(AccessTokenGuard)
   async removeFromCart(
-    @Request() req,
+    @Request() req : any,
     @Param('cartId') cartId: string,
   ) {
     const userId = req[REQUEST_USER_KEY].userId;
@@ -36,14 +36,14 @@ export class CartController {
 
   @Delete()
   @UseGuards(AccessTokenGuard)
-  async clearCart(@Request() req) {
+  async clearCart(@Request() req : any) {
     const userId = req[REQUEST_USER_KEY].userId;
     return this.cartService.clearCart(userId);
   }
 
   @Post('total')
   @UseGuards(AccessTokenGuard)
-  async getCartTotal(@Request() req, @Body() body: { courseIds: string[] }) {
+  async getCartTotal(@Request() req : any, @Body() body: { courseIds: string[] }) {
     const userId = req[REQUEST_USER_KEY].userId;
     return this.cartService.getCartTotal(userId, body.courseIds);
   }
