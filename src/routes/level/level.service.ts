@@ -62,16 +62,10 @@ export class LevelService {
         data,
       })
     } catch (error) {
-      if (error.message === 'Level with this name already exists') {
-        throw new Error(error.message)
+      if (error instanceof BadRequestException || error instanceof NotFoundException || error instanceof ConflictException) {
+        throw error
       }
-      if (error.code === 'P2002') {
-        throw new ConflictException({
-          status: 409,
-          message: 'Level with this name already exists',
-        })
-      }
-      throw new Error('Failed to create level: ' + error.message)
+      throw new Error('Failed to create lever')
     }
   }
 
@@ -90,16 +84,28 @@ export class LevelService {
           message: 'Level not found',
         })
       }
+      console.log("🚀 ~ LevelService ~ updateLevel ~ level:", level)
+
+      const existingLevel = await this.prismaService.level.findFirst({
+        where: { name: data.name },
+      })
+
+      if (existingLevel) {
+        throw new ConflictException({
+          status: 409,
+          message: 'Level with this name already exists',
+        })
+      }
 
       return await this.prismaService.level.update({
         where: { id },
         data,
       })
     } catch (error) {
-      throw new BadRequestException({
-        status: 400,
-        message: 'Failed to update level',
-      })
+      if (error instanceof BadRequestException || error instanceof NotFoundException || error instanceof ConflictException) {
+        throw error
+      }
+      throw new Error('Failed to update lever')
     }
   }
 
@@ -122,10 +128,10 @@ export class LevelService {
 
       return { message: 'Level deleted successfully' }
     } catch (error) {
-      throw new BadRequestException({
-        status: 400,
-        message: 'Failed to delete level',
-      })
+      if (error instanceof BadRequestException || error instanceof NotFoundException || error instanceof ConflictException) {
+        throw error
+      }
+      throw new Error('Failed to delete lever')
     }
   }
 }

@@ -5,3 +5,7 @@ export function generateUsername(name: string): string {
   const cleanName = name.toLowerCase().replace(/\s+/g, '')
   return `${cleanName}_${uuid}`
 }
+
+export function validateUuid(){
+  
+}

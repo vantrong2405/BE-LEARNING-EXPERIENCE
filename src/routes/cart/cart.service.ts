@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/shared/services/prisma.service';
 
 @Injectable()
@@ -73,6 +73,7 @@ export class CartService {
     }
 
     async addToCart(userId: string, courseId: string) {
+      try {
         const cart = await this.getCart(userId);
         const course = await this.prismaService.course.findUnique({
             where: { id: courseId }
@@ -133,27 +134,45 @@ export class CartService {
                 }
             }
         });
+      } catch (error) {
+        if (error instanceof BadRequestException || error instanceof NotFoundException || error instanceof ConflictException) {
+            throw error
+          }
+          throw new Error('Failed to create cart')
+      }
     }
 
     async removeFromCart(userId: string, courseId: string) {
-        const cart = await this.getCart(userId);
-        const cartItem = await this.prismaService.cartItem.findUnique({
-            where: {
-                id: courseId
-            }
-        });
+        try {
+            // Tìm kiếm cartItem dựa trên userId và courseId
+            const cartItem = await this.prismaService.cartItem.findFirst({
+                where: {
+                    cart: {
+                        userId: userId // Kiểm tra cart của người dùng
+                    },
+                    courseId: courseId // Tìm khóa học trong cart
+                }
+            });
 
-        if (!cartItem) {
-            throw new NotFoundException('Course not found in cart');
+            console.log("🚀 ~ CartService ~ removeFromCart ~ cartItem:", cartItem);
+
+            if (!cartItem) {
+                throw new NotFoundException('Course not found in cart');
+            }
+
+            await this.prismaService.cartItem.delete({
+                where: {
+                    id: cartItem.id 
+                }
+            });
+
+            return { message: 'Course removed from cart successfully' };
+        } catch (error) {
+            if (error instanceof BadRequestException || error instanceof NotFoundException || error instanceof ConflictException) {
+                throw error;
+            }
+            throw new Error('Failed to delete cart');
         }
-
-        await this.prismaService.cartItem.delete({
-            where: {
-                id: cartItem.id
-            }
-        });
-
-        return { message: 'Course removed from cart successfully' };
     }
 
     async clearCart(userId: string) {

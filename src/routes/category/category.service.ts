@@ -3,13 +3,29 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly prismaService: PrismaService) {}
 
-  async getCategories({ page, limit, query, categoryId, minRating, maxRating, levelId }: { page: number; limit: number; query?: string; categoryId?: string; minRating?: number; maxRating?: number; levelId?: string }) {
+  async getCategories({
+    page,
+    limit,
+    query,
+    categoryId,
+    minRating,
+    maxRating,
+    levelId,
+  }: {
+    page: number
+    limit: number
+    query?: string
+    categoryId?: string
+    minRating?: number
+    maxRating?: number
+    levelId?: string
+  }) {
     try {
       const skip = (page - 1) * limit
 
-      let filter: any = {}
+      const filter: any = {}
 
       if (query) {
         filter.OR = [
@@ -25,11 +41,8 @@ export class CategoryService {
       if (minRating || maxRating) {
         filter.courses = {
           some: {
-            AND: [
-              minRating ? { rating: { gte: minRating } } : {},
-              maxRating ? { rating: { lte: maxRating } } : {},
-            ]
-          }
+            AND: [minRating ? { rating: { gte: minRating } } : {}, maxRating ? { rating: { lte: maxRating } } : {}],
+          },
         }
       }
 
@@ -38,8 +51,8 @@ export class CategoryService {
           ...filter.courses,
           some: {
             ...filter.courses?.some,
-            levelId: levelId
-          }
+            levelId: levelId,
+          },
         }
       }
 
@@ -158,8 +171,8 @@ export class CategoryService {
     try {
       const category = await this.prismaService.category.findFirst({
         where: {
-          name: data.name
-        }
+          name: data.name,
+        },
       })
 
       if (category) {
@@ -177,10 +190,10 @@ export class CategoryService {
         },
       })
     } catch (error) {
-      throw new BadRequestException({
-        status: 400,
-        message: 'Failed to create category',
-      })
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error
+      }
+      throw new Error('Failed to delete category')
     }
   }
 
