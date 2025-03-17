@@ -47,7 +47,7 @@ export class AuthController {
   async loginWithGoogle(@Req() req : any, @Res() res: Response) {
     const { code } = req.query
     const result = await this.authService.oauth(code as string)
-    const urlRedirect = `${process.env.CLIENT_REDIRECT_CALLBACK}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}&verify=${result.verify}`
+    const urlRedirect = `${process.env.CLIENT_REDIRECT_CALLBACK}?access_token=${result.access_token}&refresh_token=${result.refresh_token}`
     return res.redirect(urlRedirect)
   }
 
