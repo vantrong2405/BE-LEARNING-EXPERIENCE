@@ -18,6 +18,7 @@ import envConfig from 'src/shared/config'
 import { ChangePasswordDTO, UpdateProfileDTO } from './user.dto'
 import { throwError } from 'rxjs'
 import { STATUS_ACCOUNT } from 'src/shared/constant/auth.constant'
+import { UserRole } from 'src/shared/decorators/roles.decorator'
 
 @Injectable()
 export class AuthService {
@@ -41,6 +42,7 @@ export class AuthService {
           dateOfBirth: dateOfBirth,
           role: body.role as Role,
           verify: 0,
+          status_account : STATUS_ACCOUNT.ACTIVE
         },
         select: {
           id: true,
@@ -182,64 +184,59 @@ export class AuthService {
 
   async oauth(code: string) {
     try {
-      const { access_token } = await this.getOauthGoogleToken(code)
-      const userInfo = await this.getGoogleUserInfo(access_token)
-
+      const { access_token } = await this.getOauthGoogleToken(code);
+      const userInfo = await this.getGoogleUserInfo(access_token);
+  
+      // Kiểm tra email_verified
       if (!userInfo.email_verified) {
-        throw new UnauthorizedException('Email not verified with Google')
+        throw new UnauthorizedException('Email not verified with Google');
       }
-
+  
       if (!userInfo.email) {
-        throw new BadRequestException('Email not provided by Google')
+        throw new BadRequestException('Email not provided by Google');
       }
-
+  
+      // Kiểm tra người dùng đã tồn tại chưa
       const user = await this.prismaService.user.findUnique({
         where: {
           email: userInfo.email as string,
         },
-      })
-
+      });
+  
       if (user) {
-        const [access_token, refresh_token] = await this.tokenService.signAccessAndRefreshToken({
-          userId: user.id,
-          verify: 1,
-        })
-        const { iat, exp } = await this.tokenService.decodeRefreshToken(refresh_token)
-        await this.prismaService.refreshToken.update({
-          where: {
-            userId: user.id,
-            expiresAt: new Date(exp * 1000),
-            token: refresh_token,
-            createdAt: new Date(iat * 1000),
-          },
-          data: {
-            token: refresh_token,
-          },
-        })
-
+        // Nếu người dùng đã tồn tại, tạo và trả về token mới
+        const tokens = await this.generateTokens({ userId: user.id });
         return {
-          access_token,
-          refresh_token,
-          newUser: 0, // chưa có user thì newUser = 0
-          verify: user.verify,
-        }
+          access_token: tokens.accessToken,
+          refresh_token: tokens.refreshToken,
+        };
       } else {
-        const passwordRandom = Math.random().toString(36).substring(2, 15)
+        // Nếu người dùng chưa tồn tại, tạo tài khoản mới và gán role là 'User'
+        const passwordRandom = Math.random().toString(36).substring(2, 15);
+        
+        // Tạo tài khoản mới
         const data = await this.register({
-          name: userInfo.email,
+          name: userInfo.name || userInfo.email,
           email: userInfo.email,
           password: passwordRandom,
-          dateOfBirth: new Date(),
           confirmPassword: passwordRandom,
-          role: 'USER',
-        })
-        return { ...data, newUser: 1, verify: 1 }
+          dateOfBirth: new Date(), // Đảm bảo rằng dateOfBirth không thiếu
+          role: UserRole.User, // Đảm bảo role là 'User'
+        });
+
+        // Tạo token cho người dùng mới
+        const tokens = await this.generateTokens({ userId: data.user.id });
+        return {
+          access_token: tokens.accessToken,
+          refresh_token: tokens.refreshToken,
+          message: 'User registered successfully. Please check your email to verify your account.',
+        };
       }
     } catch (error) {
-      throw error
+      throw error;
     }
-  } // Đóng ngoặc đầy đủ
-
+  }
+  
   private async getOauthGoogleToken(code: string) {
     try {
       const body = {
@@ -248,38 +245,40 @@ export class AuthService {
         client_secret: envConfig.GOOGLE_CLIENT_SECRET,
         redirect_uri: envConfig.GOOGLE_REDIRECT_URI,
         grant_type: 'authorization_code',
-      }
-
+      };
+  
       const { data } = await axios.post('https://oauth2.googleapis.com/token', body, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-      })
+      });
+  
       return data as {
-        access_token: string
-        id_token: string
-      }
+        access_token: string;
+        id_token: string;
+      };
     } catch (error) {
-      throwError(() => new UnauthorizedException('Failed to get Google OAuth token'))
+      throw new UnauthorizedException('Failed to get Google OAuth token');
     }
   }
-
+  
   private async getGoogleUserInfo(access_token: string) {
     try {
       const { data } = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: {
           Authorization: `Bearer ${access_token}`,
         },
-      })
+      });
+  
       return data as {
-        sub: string
-        email: string
-        email_verified: boolean
-        name: string
-        picture: string
-      }
+        sub: string;
+        email: string;
+        email_verified: boolean;
+        name: string;
+        picture: string;
+      };
     } catch (error) {
-      throw new UnauthorizedException('Failed to get Google user info')
+      throw new UnauthorizedException('Failed to get Google user info');
     }
   }
 
