@@ -14,3 +14,8 @@ export const ConditionGuard = {
 } as const
 
 export type ConditionGuardType = (typeof ConditionGuard)[keyof typeof ConditionGuard]
+
+export const STATUS_ACCOUNT = {
+  ACTIVE: 1,
+  INACTIVE: 0,
+}
