@@ -49,7 +49,6 @@ export class UpdateProfileDTO {
   bio?:string
 
   @IsOptional()
-  @IsUrl()
   @IsString()
   avatarUrl?: string
 }

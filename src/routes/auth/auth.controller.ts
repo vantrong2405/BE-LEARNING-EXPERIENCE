@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Req, Res, UseGuards } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import {
   ForgotPasswordDTO,
@@ -44,7 +44,7 @@ export class AuthController {
   }
 
   @Get('/oauth/google')
-  async loginWithGoogle(@Req() req, @Res() res: Response) {
+  async loginWithGoogle(@Req() req : any, @Res() res: Response) {
     const { code } = req.query
     const result = await this.authService.oauth(code as string)
     const urlRedirect = `${process.env.CLIENT_REDIRECT_CALLBACK}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}&verify=${result.verify}`
@@ -108,7 +108,7 @@ export class AuthController {
 
   @Get('/get-me')
   @UseGuards(AccessTokenGuard)
-  async getMe(@Req() req) {
+  async getMe(@Req() req : any) {
     const userId = req[REQUEST_USER_KEY].userId
     return await this.authService.getProfile(userId)
   }
@@ -121,14 +121,14 @@ export class AuthController {
 
   @Post('/change-password')
   @UseGuards(AccessTokenGuard)
-  async changePassword(@Req() req, @Body() body: ChangePasswordDTO) {
+  async changePassword(@Req() req : any, @Body() body: ChangePasswordDTO) {
     const userId = req[REQUEST_USER_KEY].userId
     return await this.authService.changePassword(userId, body)
   }
 
   @Post('/update-me')
   @UseGuards(AccessTokenGuard)
-  async updateMe(@Req() req, @Body() body: UpdateProfileDTO) {
+  async updateMe(@Req() req : any, @Body() body: UpdateProfileDTO) {
     const userId = req[REQUEST_USER_KEY].userId
     return await this.authService.updateProfile(userId, body)
   }
@@ -145,5 +145,12 @@ export class AuthController {
   @Delete('/users/:id')
   async deleteUser(@Param('id') userId: string) {
     return await this.authService.deleteUser(userId)
+  }
+
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(UserRole.Admin)
+  @Patch('/status-account')
+  async changeStatusUser(@Body() body: { userId: string }) {
+    return await this.authService.changeStatusAccount(body.userId)
   }
 }
