@@ -490,6 +490,7 @@ export class AuthService {
           reviews: true,
           role: true,
           verify: true,
+          status_account: true
         },
       })
 
@@ -629,6 +630,7 @@ export class AuthService {
           reviews: true,
           role: true,
           verify: true,
+          status_account: true
         },
       })
       return result
